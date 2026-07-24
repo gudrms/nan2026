@@ -33,6 +33,10 @@ function leader(state: GameState): TeamId | null {
   return blue > orange ? 'blue' : 'orange';
 }
 
+// 초반에는 매 이동마다 선두가 뒤집혀 역전 대사가 남발됨 →
+// 새 선두의 진행도가 이 값 이상일 때만 LEAD_CHANGE 발화 (게임 후반 연출 — CONCEPT §6.2)
+const LEAD_CHANGE_MIN_PROGRESS = 10;
+
 /** 상태 전이(prev → action → next)에서 대사 트리거 이벤트를 판정한다 */
 export function detectEvents(prev: GameState, action: GameAction, next: GameState): GameEvent[] {
   const events: GameEvent[] = [];
@@ -60,7 +64,12 @@ export function detectEvents(prev: GameState, action: GameAction, next: GameStat
   } else {
     const prevLeader = leader(prev);
     const nextLeader = leader(next);
-    if (nextLeader && prevLeader && nextLeader !== prevLeader) {
+    if (
+      nextLeader &&
+      prevLeader &&
+      nextLeader !== prevLeader &&
+      teamProgress(next, nextLeader) >= LEAD_CHANGE_MIN_PROGRESS
+    ) {
       events.push({ type: 'LEAD_CHANGE', actor, team, detail: { newLeader: nextLeader } });
     }
   }

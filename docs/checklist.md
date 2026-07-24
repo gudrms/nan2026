@@ -30,13 +30,13 @@
 ## M2. 화면 3종 + Canvas 윷판 — verify: 브라우저에서 플레이어 1인 + 봇 3인 한 판 완주
 
 - [~] 디자인 시안 — 화면 3종 레이아웃 + 컬러(한지·오방색) + SVG 캐릭터 4인 스타일 확정 — 기획이 클로드 디자인으로 제작(docs/design/design-system.dc.html): 컬러·타이포·캐릭터 4인·표정 4종·윷판·컴포넌트·게임 화면 완료. 시작/결과 화면·모바일 레이아웃은 파생 필요
-- [ ] `useGame` 훅 — 게임 코어 ↔ React 연결 (봇 턴 자동 진행 포함)
-- [ ] `BoardCanvas.tsx` — 윷판·말 렌더링, 이동 애니메이션, 이동 가능 위치 하이라이트·선택
-- [ ] `YutThrow.tsx` — 던지기 버튼 + 윷가락 4개 연출 (throwYut 상태 재사용)
-- [ ] `Character.tsx` — SVG 캐릭터 4인, 표정 4종(neutral/joy/anger/surprise) 전환, 입 애니메이션
-- [ ] `SpeechBubble.tsx` — 말풍선 (이 단계는 프리셋 대사로 표시)
-- [ ] Start / Game / Result 3화면 + 화면 전환
-- [ ] 통합 확인 — 한 판 완주 (잡기·업기·추가턴 동작 포함)
+- [x] `useGame` 훅 — 게임 코어 ↔ React 연결 (봇 턴 자동 진행 포함) — 이벤트→말풍선, `?mals=N` 개발 파라미터
+- [x] `Board.tsx` — 윷판·말 렌더링, 이동 애니메이션(CSS transition), 이동 가능 위치 하이라이트·선택 — Canvas 대신 SVG로 구현 (보류 결정 D-8)
+- [x] `YutSticks.tsx` — 던지기 결과 연출 (throwYut 가락 상태 재사용)
+- [x] `Character.tsx` — SVG 캐릭터 4인, 표정 4종(neutral/joy/anger/surprise) 전환, 입 애니메이션 — 디자인 시스템 §03 이식
+- [x] `SpeechBubble.tsx` — 말풍선 (프리셋 대사 풀 `src/ai/presetLines.ts`)
+- [x] Start / Game / Result 3화면 + 화면 전환
+- [x] 통합 확인 — 한 판 완주 (잡기·업기·추가턴 동작 포함) — 브라우저 자동 플레이로 시작→완주→결과→재시작 E2E 확인
 
 ## M3. LLM 대사 + TTS — verify: 잡기 이벤트에서 캐릭터가 실시간 대사를 말함, 키 제거 시 폴백 동작
 
@@ -81,3 +81,4 @@
 | D-5 | 도착 코너(0) 정확 도착 | 완주 아님 — 다음 던지기로 완주 | 정확 도착 즉시 완주 (참먹이 변형) |
 | D-6 | 윷가락 평면 확률 p | 0.6 | 시뮬레이션 근거로 0.55~0.65 튜닝 |
 | D-7 | 선공 | 항상 플레이어(blue) 선 | 시뮬 결과 선공 이점 +0.5~1%p 수준이라 유지 무방 |
+| D-8 | 게임판 렌더링 | SVG (노드 클릭·CSS 애니메이션에 유리, 아트 방향과 일관) | spec §1은 Canvas — 확정 시 spec 갱신 필요 |

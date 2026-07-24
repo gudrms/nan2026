@@ -34,9 +34,9 @@ describe('detectEvents', () => {
     ]);
   });
 
-  it('잡기 → CAPTURE + 리드가 뒤집히면 LEAD_CHANGE 동시 발생', () => {
-    // orange가 8까지 앞서 있고 blue가 6에서 개(2)로 8을 잡으면 리드 역전
-    let prev = setup({ 'blue-0': { pos: 6 }, 'orange-0': { pos: 8 } });
+  it('잡기 → CAPTURE + 후반 리드가 뒤집히면 LEAD_CHANGE 동시 발생', () => {
+    // orange가 16까지 앞서 있고 blue가 14에서 개(2)로 16을 잡으면 리드 역전 (새 선두 진행도 16 ≥ 문턱 10)
+    let prev = setup({ 'blue-0': { pos: 14 }, 'orange-0': { pos: 16 } });
     prev = reduce(prev, { type: 'THROW', yut: yut(2, false) });
     const capture = getMoves(prev).find((m) => m.captures.length > 0)!;
     const action = { type: 'MOVE', move: capture } as const;
@@ -44,6 +44,15 @@ describe('detectEvents', () => {
     const types = detectEvents(prev, action, next).map((e) => e.type);
     expect(types).toContain('CAPTURE');
     expect(types).toContain('LEAD_CHANGE');
+  });
+
+  it('초반 선두 교체는 LEAD_CHANGE를 내지 않는다 (진행도 문턱 미달)', () => {
+    let prev = setup({ 'blue-0': { pos: 3 }, 'orange-0': { pos: 4 } });
+    prev = reduce(prev, { type: 'THROW', yut: yut(2, false) });
+    const plain = getMoves(prev).find((m) => m.from === 3)!; // 3→5, blue 5 > orange 4로 역전이지만 초반
+    const action = { type: 'MOVE', move: plain } as const;
+    const types = detectEvents(prev, action, reduce(prev, action)).map((e) => e.type);
+    expect(types).not.toContain('LEAD_CHANGE');
   });
 
   it('업기 → STACK (잡기가 없을 때만)', () => {
