@@ -63,6 +63,16 @@ export function computeMove(pos: number | 'ready', shortcut: ShortcutState, step
   return { dest: ahead[steps - 1], path: ahead.slice(0, steps) };
 }
 
+/** 노드별 렌더링 좌표 (500×500 viewBox 기준, 디자인 시스템 §06 윷판 격자와 동일) */
+export const BOARD_COORDS: Record<number, [number, number]> = {
+  0: [440, 440], 1: [440, 364], 2: [440, 288], 3: [440, 212], 4: [440, 136],
+  5: [440, 60], 6: [364, 60], 7: [288, 60], 8: [212, 60], 9: [136, 60],
+  10: [60, 60], 11: [60, 136], 12: [60, 212], 13: [60, 288], 14: [60, 364],
+  15: [60, 440], 16: [136, 440], 17: [212, 440], 18: [288, 440], 19: [364, 440],
+  20: [376.7, 123.3], 21: [313.3, 186.7], 22: [250, 250], 23: [186.7, 313.3], 24: [123.3, 376.7],
+  25: [123.3, 123.3], 26: [186.7, 186.7], 27: [313.3, 313.3], 28: [376.7, 376.7],
+};
+
 /** 완주까지 총 스텝 기준 진행도 (0=출발 전, 21=완주) — 봇 평가·역전 판정용 */
 export const FULL_PROGRESS = OUTER_FULL.length + 1; // 21
 export function progressOf(pos: number | 'ready' | 'goal', shortcut: ShortcutState): number {
