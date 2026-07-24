@@ -79,3 +79,111 @@ export function chooseMove(state: GameState, moves: Move[], w: BotWeights = DEFA
   }
   return best;
 }
+
+// ---------------------------------------------------------------------------
+// 판단 AI v2 — 기대값 탐색 (spec §4.2)
+// 수를 실제로 적용한 결과 상태에서 (내 진행 이득 + 상대 손실)을 재고,
+// 상대 다음 던지기의 확률분포(도~모)를 펼쳐 "최선의 반격 잡기"의 기대 손실을 뺀다.
+// ---------------------------------------------------------------------------
+
+/** 캐릭터별 성향 가중치 — 플레이 스타일에 성격 반영 (CONCEPT §4) */
+export interface Personality {
+  /** 잡기(상대 손실) 가치 배율 */
+  aggression: number;
+  /** 피격 기대 손실 배율 (높을수록 안전 주행) */
+  caution: number;
+}
+
+export const PERSONALITIES: Record<string, Personality> = {
+  balanced: { aggression: 1.0, caution: 1.0 },
+  beomtiger: { aggression: 1.4, caution: 0.6 }, // 허세 대장 — 잡기 우선, 위험 감수
+  ninetail: { aggression: 0.9, caution: 1.4 }, // 계산가 — 안전 주행
+  kkaki: { aggression: 1.0, caution: 1.0 }, // 균형
+};
+
+/** 다음 상대 이동의 기대 손실: 던지기 분포를 펼쳐 각 결과에서 상대 최선의 잡기 손실 */
+function expectedCaptureLoss(mals: Mal[], myTeam: TeamId): number {
+  const probs = stepProbabilities();
+  // 내 팀 말 위치별 진행도 합 (잡히면 잃는 가치)
+  const myGroups = new Map<number, number>();
+  for (const m of mals) {
+    if (m.team !== myTeam || typeof m.pos !== 'number') continue;
+    myGroups.set(m.pos, (myGroups.get(m.pos) ?? 0) + progressOf(m.pos, m.shortcut) + 2); // +2: 재출발 비용
+  }
+  if (myGroups.size === 0) return 0;
+
+  const enemySeen = new Set<string>();
+  const enemyGroups: { pos: number | 'ready'; sc: ShortcutState }[] = [];
+  for (const m of mals) {
+    if (m.team === myTeam || m.pos === 'goal') continue;
+    const key = `${m.pos}`;
+    if (enemySeen.has(key)) continue;
+    enemySeen.add(key);
+    enemyGroups.push({ pos: m.pos as number | 'ready', sc: m.shortcut });
+  }
+
+  let loss = 0;
+  for (let steps = 1; steps <= 5; steps++) {
+    let bestLossAtSteps = 0; // 상대는 이 던지기 결과에서 가장 큰 잡기를 고른다
+    for (const g of enemyGroups) {
+      const ahead = remainingPath(g.pos, g.sc);
+      if (steps > ahead.length) continue;
+      const dest = ahead[steps - 1];
+      const captured = myGroups.get(dest);
+      if (captured && captured > bestLossAtSteps) bestLossAtSteps = captured;
+    }
+    loss += probs[steps] * bestLossAtSteps;
+  }
+  return loss;
+}
+
+/** 수 적용 후의 말 배치 (턴 전환 없이 배치만) — 기대값 평가용 */
+function applyMoveToMals(mals: Mal[], move: Move): Mal[] {
+  const moved = new Set(move.malIds);
+  const captured = new Set(move.captures);
+  const stacked = new Set(move.stacks);
+  const mover = mals.find((m) => m.id === move.malIds[0]) as Mal;
+  const landedSc: ShortcutState =
+    typeof move.to === 'number' ? nextShortcutState(move.to, mover.shortcut) : 'none';
+  return mals.map((m): Mal => {
+    if (moved.has(m.id)) return { ...m, pos: move.to === 'goal' ? 'goal' : move.to, shortcut: landedSc };
+    if (captured.has(m.id)) return { ...m, pos: 'ready', shortcut: 'none' };
+    if (stacked.has(m.id)) return { ...m, shortcut: landedSc };
+    return m;
+  });
+}
+
+function teamProgressOf(mals: Mal[], team: TeamId): number {
+  return mals.filter((m) => m.team === team).reduce((s, m) => s + progressOf(m.pos, m.shortcut), 0);
+}
+
+export function scoreMoveExpecti(state: GameState, move: Move, p: Personality): number {
+  const team = currentTeam(state);
+  const enemyTeam: TeamId = team === 'blue' ? 'orange' : 'blue';
+  const after = applyMoveToMals(state.mals, move);
+
+  const myGain = teamProgressOf(after, team) - teamProgressOf(state.mals, team);
+  const enemyLoss = teamProgressOf(state.mals, enemyTeam) - teamProgressOf(after, enemyTeam);
+  const extraTurn = move.captures.length > 0 ? 2.55 : 0; // 추가 던지기 기대 전진량
+  const risk = expectedCaptureLoss(after, team);
+
+  return myGain + (enemyLoss + extraTurn) * p.aggression - risk * p.caution;
+}
+
+export function chooseMoveExpecti(
+  state: GameState,
+  moves: Move[],
+  p: Personality = PERSONALITIES.balanced,
+): Move {
+  if (moves.length === 0) throw new Error('가능한 수가 없음');
+  let best = moves[0];
+  let bestScore = -Infinity;
+  for (const move of moves) {
+    const s = scoreMoveExpecti(state, move, p);
+    if (s > bestScore) {
+      bestScore = s;
+      best = move;
+    }
+  }
+  return best;
+}

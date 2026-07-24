@@ -5,15 +5,25 @@ import { mulberry32 } from './rng';
 // CLI(tsx) 실행 전용 — @types/node를 프로젝트 전역에 넣지 않기 위한 최소 선언
 declare const process: { argv: string[] } | undefined;
 import { DEFAULT_P_FLAT, throwYut, type YutName } from './throwYut';
-import { createInitialState, currentTeam, reduce, type TeamId } from './state';
+import { createInitialState, currentTeam, reduce, type GameState, type Move, type TeamId } from './state';
 import { getMoves } from './rules';
-import { chooseMove } from './botAI';
+import { chooseMove, chooseMoveExpecti, PERSONALITIES } from './botAI';
+
+export type BotVersion = 'v1' | 'v2';
 
 export interface SimOptions {
   games: number;
   malsPerTeam: number;
   pFlat: number;
   seed: number;
+  /** 팀별 봇 버전 (v1=휴리스틱, v2=기대값 탐색) — AI 개선 승률 검증용 */
+  botBlue: BotVersion;
+  botOrange: BotVersion;
+}
+
+function pickMove(state: GameState, version: BotVersion): Move {
+  const moves = getMoves(state);
+  return version === 'v1' ? chooseMove(state, moves) : chooseMoveExpecti(state, moves, PERSONALITIES.balanced);
 }
 
 export interface SimStats {
@@ -27,7 +37,14 @@ export interface SimStats {
 }
 
 export function simulate(opts: Partial<SimOptions> = {}): SimStats {
-  const { games = 1000, malsPerTeam = 4, pFlat = DEFAULT_P_FLAT, seed = 42 } = opts;
+  const {
+    games = 1000,
+    malsPerTeam = 4,
+    pFlat = DEFAULT_P_FLAT,
+    seed = 42,
+    botBlue = 'v1',
+    botOrange = 'v1',
+  } = opts;
   const rng = mulberry32(seed);
   const wins: Record<TeamId, number> = { blue: 0, orange: 0 };
   const captures: Record<TeamId, number> = { blue: 0, orange: 0 };
@@ -46,7 +63,7 @@ export function simulate(opts: Partial<SimOptions> = {}): SimStats {
         state = reduce(state, { type: 'THROW', yut });
       } else {
         const team = currentTeam(state);
-        const move = chooseMove(state, getMoves(state));
+        const move = pickMove(state, team === 'blue' ? botBlue : botOrange);
         captures[team] += move.captures.length;
         state = reduce(state, { type: 'MOVE', move });
       }
@@ -74,6 +91,8 @@ function parseArgs(argv: string[]): Partial<SimOptions> {
     else if (argv[i] === '--mals') opts.malsPerTeam = next();
     else if (argv[i] === '--p') opts.pFlat = next();
     else if (argv[i] === '--seed') opts.seed = next();
+    else if (argv[i] === '--blue') opts.botBlue = argv[++i] as BotVersion;
+    else if (argv[i] === '--orange') opts.botOrange = argv[++i] as BotVersion;
   }
   return opts;
 }
@@ -90,6 +109,7 @@ if (isMain) {
   const elapsed = Date.now() - started;
   const pct = (n: number) => `${((n / stats.games) * 100).toFixed(1)}%`;
   console.log(`\n=== 자동 대전 ${stats.games}판 (${elapsed}ms) ===`);
+  console.log(`매치업     blue=${opts.botBlue ?? 'v1'}(선공) vs orange=${opts.botOrange ?? 'v1'}`);
   console.log(`승률       blue(선공) ${pct(stats.wins.blue)} : orange ${pct(stats.wins.orange)}`);
   console.log(`평균 이동  ${stats.avgMovesPerGame.toFixed(1)}회 / 평균 던지기 ${stats.avgThrowsPerGame.toFixed(1)}회`);
   console.log(

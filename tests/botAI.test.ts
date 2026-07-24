@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createInitialState, reduce, type GameState } from '../src/game/state';
 import { getMoves } from '../src/game/rules';
-import { chooseMove, dangerAt, scoreMove } from '../src/game/botAI';
+import { chooseMove, chooseMoveExpecti, dangerAt, scoreMove, scoreMoveExpecti, PERSONALITIES } from '../src/game/botAI';
 import type { YutThrow } from '../src/game/throwYut';
 
 const yut = (steps: 1 | 2 | 3 | 4 | 5, bonus = steps >= 4): YutThrow => ({
@@ -72,5 +72,36 @@ describe('chooseMove — 휴리스틱 우선순위', () => {
     state = reduce(state, { type: 'THROW', yut: yut(3, false) });
     const chosen = chooseMove(state, getMoves(state));
     expect(chosen.to).toBe('goal');
+  });
+});
+
+describe('chooseMoveExpecti — 기대값 탐색 v2', () => {
+  it('잡을 수 있으면 잡는다 (상대 손실 + 추가 턴 기대값)', () => {
+    let state = setup({ 'blue-0': { pos: 2 }, 'blue-1': { pos: 12 }, 'orange-0': { pos: 4 } });
+    state = reduce(state, { type: 'THROW', yut: yut(2, false) });
+    const chosen = chooseMoveExpecti(state, getMoves(state));
+    expect(chosen.captures).toContain('orange-0');
+  });
+
+  it('같은 수라도 상대 사정권에 두는 배치는 점수가 낮다', () => {
+    const safeState = setup({ 'blue-0': { pos: 11 } });
+    const safe = reduce(safeState, { type: 'THROW', yut: yut(2, false) });
+    const safeMove = getMoves(safe).find((m) => m.from === 11)!;
+
+    const riskyState = setup({ 'blue-0': { pos: 11 }, 'orange-0': { pos: 12 } });
+    const risky = reduce(riskyState, { type: 'THROW', yut: yut(2, false) });
+    const riskyMove = getMoves(risky).find((m) => m.from === 11)!;
+
+    const p = PERSONALITIES.balanced;
+    expect(scoreMoveExpecti(risky, riskyMove, p)).toBeLessThan(scoreMoveExpecti(safe, safeMove, p));
+  });
+
+  it('성향 가중치: 같은 잡기 수를 범발톱(공격형)이 더 높게 평가한다', () => {
+    let state = setup({ 'blue-0': { pos: 2 }, 'orange-0': { pos: 4 } });
+    state = reduce(state, { type: 'THROW', yut: yut(2, false) });
+    const capture = getMoves(state).find((m) => m.captures.length > 0)!;
+    expect(scoreMoveExpecti(state, capture, PERSONALITIES.beomtiger)).toBeGreaterThan(
+      scoreMoveExpecti(state, capture, PERSONALITIES.ninetail),
+    );
   });
 });
