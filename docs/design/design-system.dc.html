@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Gugi&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6EFDE;font-family:'Pretendard Variable',Pretendard,sans-serif;color:#2A2722;}
+a{color:#BE3A2B;} a:hover{color:#8F2B20;}
+</style>
+</helmet>
+<div style="display:flex;height:10px">
+  <div style="flex:1;background:#2C5FA8"></div><div style="flex:1;background:#BE3A2B"></div><div style="flex:1;background:#E9B94C"></div><div style="flex:1;background:#FBF7EC"></div><div style="flex:1;background:#2A2722"></div>
+</div>
+<div style="max-width:1200px;margin:0 auto;padding:56px 40px 120px">
+
+  <header data-screen-label="표지" style="display:flex;flex-direction:column;gap:14px;border-bottom:4px solid #2A2722;padding-bottom:36px">
+    <div style="font-size:13px;letter-spacing:2px;color:#8D8265;font-weight:600">DESIGN SYSTEM · v1.0 · 2026-07-25</div>
+    <h1 style="font-family:Gugi;font-weight:400;font-size:52px;margin:0;line-height:1.15">윷놀이: 까치호랑이 한판</h1>
+    <p style="margin:0;font-size:18px;color:#5C5340;max-width:760px;line-height:1.6">민화 호작도 모티프 × 모던 플랫 일러스트. 한지 위에 오방색이 왁자지껄하게 펼쳐지는 설날 마당 — CONCEPT.md §8 아트 디렉션 기준 문서.</p>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <span style="font-size:13px;font-weight:700;background:#2C5FA8;color:#FBF7EC;padding:5px 14px;border-radius:999px">우리 팀 · 청</span>
+      <span style="font-size:13px;font-weight:700;background:#E07B39;color:#FBF7EC;padding:5px 14px;border-radius:999px">상대 팀 · 주황</span>
+      <span style="font-size:13px;font-weight:700;background:#FBF7EC;color:#2A2722;border:2px solid #2A2722;padding:4px 13px;border-radius:999px">외부 이미지 에셋 0개 · 전량 SVG/CSS</span>
+    </div>
+  </header>
+
+  <section data-screen-label="01 색">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">01</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">색 — 오방색과 한지</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Color</span>
+    </div>
+    <p style="margin:0 0 20px;font-size:15px;color:#5C5340;line-height:1.6">바탕은 언제나 한지. 오방색 5색은 전부 쓰되, 넓은 면은 백·황 계열에 맡기고 청·적은 팀과 액션에만 준다.</p>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
+      <div style="border:2px solid #2A2722;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:86px;background:#2C5FA8"></div><div style="padding:10px 12px"><div style="font-weight:700;font-size:15px">청 靑</div><div style="font-size:12.5px;color:#8D8265">#2C5FA8 · 우리 팀</div></div></div>
+      <div style="border:2px solid #2A2722;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:86px;background:#BE3A2B"></div><div style="padding:10px 12px"><div style="font-weight:700;font-size:15px">적 赤</div><div style="font-size:12.5px;color:#8D8265">#BE3A2B · 주요 버튼</div></div></div>
+      <div style="border:2px solid #2A2722;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:86px;background:#E9B94C"></div><div style="padding:10px 12px"><div style="font-weight:700;font-size:15px">황 黃</div><div style="font-size:12.5px;color:#8D8265">#E9B94C · 강조·하이라이트</div></div></div>
+      <div style="border:2px solid #2A2722;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:86px;background:#FBF7EC;border-bottom:1px solid #E4DAC2"></div><div style="padding:10px 12px"><div style="font-weight:700;font-size:15px">백 白</div><div style="font-size:12.5px;color:#8D8265">#FBF7EC · 카드·말풍선</div></div></div>
+      <div style="border:2px solid #2A2722;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:86px;background:#2A2722"></div><div style="padding:10px 12px"><div style="font-weight:700;font-size:15px">흑 黑</div><div style="font-size:12.5px;color:#8D8265">#2A2722 · 먹선·본문</div></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:14px">
+      <div style="border:1.5px solid #D9CBA8;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:52px;background:#F6EFDE"></div><div style="padding:8px 12px"><div style="font-weight:700;font-size:13.5px">한지 바탕</div><div style="font-size:12px;color:#8D8265">#F6EFDE</div></div></div>
+      <div style="border:1.5px solid #D9CBA8;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:52px;background:#E07B39"></div><div style="padding:8px 12px"><div style="font-weight:700;font-size:13.5px">주황 · 상대팀</div><div style="font-size:12px;color:#8D8265">#E07B39</div></div></div>
+      <div style="border:1.5px solid #D9CBA8;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:52px;background:#E8933A"></div><div style="padding:8px 12px"><div style="font-weight:700;font-size:13.5px">호랑이 털</div><div style="font-size:12px;color:#8D8265">#E8933A</div></div></div>
+      <div style="border:1.5px solid #D9CBA8;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:52px;background:#D96635"></div><div style="padding:8px 12px"><div style="font-weight:700;font-size:13.5px">여우 털</div><div style="font-size:12px;color:#8D8265">#D96635</div></div></div>
+      <div style="border:1.5px solid #D9CBA8;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:52px;background:#8A5A2E"></div><div style="padding:8px 12px"><div style="font-weight:700;font-size:13.5px">윷 나무</div><div style="font-size:12px;color:#8D8265">#8A5A2E</div></div></div>
+      <div style="border:1.5px solid #D9CBA8;border-radius:14px;overflow:hidden;background:#FBF7EC"><div style="height:52px;background:#D9CBA8"></div><div style="padding:8px 12px"><div style="font-weight:700;font-size:13.5px">경계선·비활성</div><div style="font-size:12px;color:#8D8265">#D9CBA8</div></div></div>
+    </div>
+  </section>
+
+  <section data-screen-label="02 타이포그래피">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">02</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">글자 — 구기 × 프리텐다드</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Typography</span>
+    </div>
+    <p style="margin:0 0 24px;font-size:15px;color:#5C5340;line-height:1.6">디스플레이는 <strong>Gugi</strong>(OFL) — 전통 문양처럼 각진 기하 한글. 본문·대사는 <strong>Pretendard</strong>(OFL). 두 벌로 끝낸다.</p>
+    <div style="display:flex;flex-direction:column;gap:0;border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;overflow:hidden">
+      <div style="display:grid;grid-template-columns:190px 1fr;gap:20px;align-items:center;padding:20px 24px;border-bottom:1.5px solid #E4DAC2"><div style="font-size:12.5px;color:#8D8265;font-weight:600">타이틀 · Gugi 44</div><div style="font-family:Gugi;font-size:44px;line-height:1.15">윷놀이: 까치호랑이 한판</div></div>
+      <div style="display:grid;grid-template-columns:190px 1fr;gap:20px;align-items:center;padding:20px 24px;border-bottom:1.5px solid #E4DAC2"><div style="font-size:12.5px;color:#8D8265;font-weight:600">화면 제목 · Gugi 28</div><div style="font-family:Gugi;font-size:28px">범발톱의 차례!</div></div>
+      <div style="display:grid;grid-template-columns:190px 1fr;gap:20px;align-items:center;padding:20px 24px;border-bottom:1.5px solid #E4DAC2"><div style="font-size:12.5px;color:#8D8265;font-weight:600">대사 · Pretendard 700 · 19</div><div style="font-weight:700;font-size:19px">“대장, 지금 업고 가는 게 이득이에요!”</div></div>
+      <div style="display:grid;grid-template-columns:190px 1fr;gap:20px;align-items:center;padding:20px 24px;border-bottom:1.5px solid #E4DAC2"><div style="font-size:12.5px;color:#8D8265;font-weight:600">본문 · Pretendard 400 · 16/1.6</div><div style="font-size:16px;line-height:1.6;max-width:680px">설날 아침, 민화 병풍 속 동물들이 마당으로 튀어나와 윷판을 폈다. 허세 대장 호랑이가 외친다.</div></div>
+      <div style="display:grid;grid-template-columns:190px 1fr;gap:20px;align-items:center;padding:20px 24px"><div style="font-size:12.5px;color:#8D8265;font-weight:600">캡션 · Pretendard 600 · 13</div><div style="font-size:13px;font-weight:600;color:#8D8265">남은 말 3 · 완주 1</div></div>
+    </div>
+  </section>
+
+  <section data-screen-label="03 캐릭터">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">03</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">캐릭터 — 병풍에서 나온 넷</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Characters</span>
+    </div>
+    <p style="margin:0 0 24px;font-size:15px;color:#5C5340;line-height:1.6">마스코트 감각의 단순 도형 SVG. 모든 캐릭터는 <strong>2.5px 먹선</strong> + 플랫 채색, 표정 4상태(기본·기쁨·분노·놀람)를 공유한다. 표정은 API 응답의 <code style="background:#EFE5CC;padding:2px 6px;border-radius:6px;font-size:13px">emotion</code> 값이 구동.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:18px;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="height:190px;display:flex;align-items:flex-end">{{charPlayer}}</div><div style="font-family:Gugi;font-size:20px;margin-top:8px">플레이어</div><div style="font-size:13px;color:#5C5340">주인공 · 윷을 던지는 사람</div><span style="font-size:12px;font-weight:700;background:#2C5FA8;color:#FBF7EC;padding:3px 12px;border-radius:999px">우리 팀</span></div>
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:18px;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="height:190px;display:flex;align-items:flex-end">{{charKkaki}}</div><div style="font-family:Gugi;font-size:20px;margin-top:8px">까치 “깍이”</div><div style="font-size:13px;color:#5C5340">아군 AI · 훈수와 응원</div><span style="font-size:12px;font-weight:700;background:#2C5FA8;color:#FBF7EC;padding:3px 12px;border-radius:999px">우리 팀</span></div>
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:18px;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="height:190px;display:flex;align-items:flex-end">{{charTiger}}</div><div style="font-family:Gugi;font-size:20px;margin-top:8px">호랑이 “범발톱”</div><div style="font-size:13px;color:#5C5340">적 리더 · 허세 도발꾼</div><span style="font-size:12px;font-weight:700;background:#E07B39;color:#FBF7EC;padding:3px 12px;border-radius:999px">상대 팀</span></div>
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:18px;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="height:190px;display:flex;align-items:flex-end">{{charFox}}</div><div style="font-family:Gugi;font-size:20px;margin-top:8px">여우 “꼬리아홉”</div><div style="font-size:13px;color:#5C5340">적 참모 · 얄미운 계산가</div><span style="font-size:12px;font-weight:700;background:#E07B39;color:#FBF7EC;padding:3px 12px;border-radius:999px">상대 팀</span></div>
+    </div>
+    <h3 style="font-family:Gugi;font-weight:400;font-size:20px;margin:36px 0 14px">표정 상태 ×4</h3>
+    <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:20px 24px;display:flex;flex-direction:column;gap:4px">
+      <div style="display:grid;grid-template-columns:120px repeat(4,1fr);gap:8px;align-items:center;padding-bottom:6px;border-bottom:1.5px solid #E4DAC2">
+        <div></div>
+        <div style="text-align:center;font-size:13px;font-weight:700;color:#8D8265">기본 neutral</div>
+        <div style="text-align:center;font-size:13px;font-weight:700;color:#8D8265">기쁨 joy</div>
+        <div style="text-align:center;font-size:13px;font-weight:700;color:#8D8265">분노 anger</div>
+        <div style="text-align:center;font-size:13px;font-weight:700;color:#8D8265">놀람 surprise</div>
+      </div>
+      <sc-for list="{{faceRows}}" as="r" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:120px repeat(4,1fr);gap:8px;align-items:center;padding:6px 0">
+          <div style="font-weight:700;font-size:15px">{{r.name}}</div>
+          <div style="display:flex;justify-content:center">{{r.n}}</div>
+          <div style="display:flex;justify-content:center">{{r.j}}</div>
+          <div style="display:flex;justify-content:center">{{r.a}}</div>
+          <div style="display:flex;justify-content:center">{{r.s}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-screen-label="04 윷가락과 결과">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">04</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">윷가락과 결과</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Yut Sticks</span>
+    </div>
+    <div style="display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:stretch">
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:22px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-weight:700;font-size:15px">가락 2상태</div>
+        <div style="display:flex;gap:26px;justify-content:center;padding:8px 0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="width:34px;height:132px;border-radius:17px;background:#EAD3A2;border:2.5px solid #8A5A2E;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#8A5A2E;font-weight:800;font-size:15px"><span>✕</span><span>✕</span><span>✕</span></div>
+            <div style="font-size:13px;font-weight:700">앞 (배)</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="width:34px;height:132px;border-radius:17px;background:#8A5A2E;border:2.5px solid #6E4522;position:relative"><div style="position:absolute;left:7px;top:14px;bottom:14px;width:5px;border-radius:3px;background:rgba(251,247,236,.35)"></div></div>
+            <div style="font-size:13px;font-weight:700">뒤 (등)</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#5C5340;line-height:1.55">던지기 연출은 가락 4개의 앞/뒤 상태값을 그대로 재사용한다 (spec §4.3).</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+        <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><div style="font-family:Gugi;font-size:26px">도</div><div style="display:flex;gap:5px"><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div></div><div style="font-size:13px;font-weight:700">1칸</div></div>
+        <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><div style="font-family:Gugi;font-size:26px">개</div><div style="display:flex;gap:5px"><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div></div><div style="font-size:13px;font-weight:700">2칸</div></div>
+        <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px"><div style="font-family:Gugi;font-size:26px">걸</div><div style="display:flex;gap:5px"><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div></div><div style="font-size:13px;font-weight:700">3칸</div></div>
+        <div style="border:2.5px solid #BE3A2B;border-radius:16px;background:#FBF7EC;padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 0 #BE3A2B"><div style="font-family:Gugi;font-size:26px;color:#BE3A2B">윷</div><div style="display:flex;gap:5px"><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#EAD3A2;border:1.5px solid #8A5A2E"></div></div><div style="font-size:13px;font-weight:700;color:#BE3A2B">4칸 · 한 번 더!</div></div>
+        <div style="border:2.5px solid #BE3A2B;border-radius:16px;background:#FBF7EC;padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 0 #BE3A2B"><div style="font-family:Gugi;font-size:26px;color:#BE3A2B">모</div><div style="display:flex;gap:5px"><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div><div style="width:9px;height:30px;border-radius:5px;background:#8A5A2E"></div></div><div style="font-size:13px;font-weight:700;color:#BE3A2B">5칸 · 한 번 더!</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="05 말">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">05</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">말 — 판 위의 팀</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Mal Tokens</span>
+    </div>
+    <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:26px;display:flex;gap:48px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="width:58px;height:58px;border-radius:50%;background:#2C5FA8;border:3px solid #2A2722;display:flex;align-items:center;justify-content:center"><div style="width:22px;height:22px;border-radius:50%;background:#FBF7EC"></div></div>
+        <div style="font-size:13px;font-weight:700">우리 팀 말</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="width:58px;height:58px;border-radius:50%;background:#E07B39;border:3px solid #2A2722;display:flex;align-items:center;justify-content:center"><div style="width:22px;height:22px;border-radius:50%;background:#FBF7EC"></div></div>
+        <div style="font-size:13px;font-weight:700">상대 팀 말</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="position:relative;width:58px;height:58px"><div style="width:58px;height:58px;border-radius:50%;background:#2C5FA8;border:3px solid #2A2722;display:flex;align-items:center;justify-content:center;box-sizing:border-box"><div style="width:22px;height:22px;border-radius:50%;background:#FBF7EC"></div></div><div style="position:absolute;top:-8px;right:-8px;width:26px;height:26px;border-radius:50%;background:#E9B94C;border:2.5px solid #2A2722;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">2</div></div>
+        <div style="font-size:13px;font-weight:700">업은 말 (×2 뱃지)</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="width:58px;height:58px;border-radius:50%;background:#2C5FA8;border:3px solid #2A2722;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 5px rgba(233,185,76,.55)"><div style="width:22px;height:22px;border-radius:50%;background:#FBF7EC"></div></div>
+        <div style="font-size:13px;font-weight:700">선택됨 (황 링)</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="width:58px;height:58px;border-radius:50%;background:#D9CBA8;border:3px dashed #8D8265;display:flex;align-items:center;justify-content:center"><div style="width:22px;height:22px;border-radius:50%;background:#FBF7EC"></div></div>
+        <div style="font-size:13px;font-weight:700">대기 (출발 전)</div>
+      </div>
+      <div style="font-size:13.5px;color:#5C5340;line-height:1.6;max-width:300px;margin-left:auto">말은 원형 토큰 하나로 통일. 팀은 색으로만 구분하고, 업기·선택·대기는 뱃지/링/점선의 상태 레이어로 표현한다.</div>
+    </div>
+  </section>
+
+  <section data-screen-label="06 윷판">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">06</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">윷판 — 29자리</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Board</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:center">
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#F1E7CF;padding:24px;display:flex;justify-content:center">{{boardMain}}</div>
+      <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px;font-size:14.5px;line-height:1.55;color:#3E382D">
+        <li style="display:flex;gap:10px"><span style="flex-shrink:0;width:10px;height:10px;border-radius:50%;background:#2A2722;margin-top:6px"></span>외곽 20 + 대각 지름길 8 + 중앙 방 1 = 29노드. 칸은 명확한 원형 노드.</li>
+        <li style="display:flex;gap:10px"><span style="flex-shrink:0;width:10px;height:10px;border-radius:50%;background:#BE3A2B;margin-top:6px"></span>모서리 4곳과 방은 이중 원 — 지름길 진입점임을 형태로 표시.</li>
+        <li style="display:flex;gap:10px"><span style="flex-shrink:0;width:10px;height:10px;border-radius:50%;background:#E9B94C;margin-top:6px"></span>이동 가능 위치는 황색 반투명 원 + 점선 링 하이라이트.</li>
+        <li style="display:flex;gap:10px"><span style="flex-shrink:0;width:10px;height:10px;border-radius:50%;background:#8D8265;margin-top:6px"></span>선·노드는 먹선보다 옅은 목색(#C9B78C) — 말과 캐릭터가 주인공.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section data-screen-label="07 UI 컴포넌트">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">07</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">UI 컴포넌트</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Components</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:22px;display:flex;flex-direction:column;gap:16px">
+        <div style="font-weight:700;font-size:15px">버튼</div>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <button style="font-family:Gugi;font-size:22px;color:#FBF7EC;background:#BE3A2B;border:none;border-radius:16px;padding:14px 34px;cursor:pointer;white-space:nowrap;box-shadow:0 5px 0 #8F2B20" style-hover="background:#D24936" style-active="transform:translateY(4px);box-shadow:0 1px 0 #8F2B20">윷 던지기!</button>
+          <button style="font-family:Gugi;font-size:17px;color:#2A2722;background:#FBF7EC;border:2.5px solid #2A2722;border-radius:14px;padding:11px 26px;cursor:pointer;white-space:nowrap" style-hover="background:#F1E7CF">한 판 더</button>
+          <button style="font-family:Gugi;font-size:17px;color:#9C9074;background:#E4DAC2;border:none;border-radius:14px;padding:12px 26px;cursor:not-allowed;white-space:nowrap">던지는 중…</button>
+        </div>
+        <div style="font-size:13px;color:#5C5340;line-height:1.55">주요 액션은 적색 + 아래 그림자(도장 누르는 감각). 누르면 4px 가라앉는다.</div>
+      </div>
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:22px;display:flex;flex-direction:column;gap:16px">
+        <div style="font-weight:700;font-size:15px">말풍선</div>
+        <div style="position:relative;background:#FFFFFF;border:2.5px solid #2A2722;border-radius:14px;padding:16px 18px 14px;max-width:420px">
+          <span style="position:absolute;top:-13px;left:14px;background:#2C5FA8;color:#FBF7EC;font-size:12.5px;font-weight:800;padding:3px 12px;border-radius:999px;border:2px solid #2A2722">깍이</span>
+          <div style="font-weight:700;font-size:17px;line-height:1.45">대장, 지금 업고 가는 게 이득이에요!</div>
+          <div style="position:absolute;bottom:-11px;left:34px;width:18px;height:18px;background:#FFFFFF;border-right:2.5px solid #2A2722;border-bottom:2.5px solid #2A2722;transform:rotate(45deg)"></div>
+        </div>
+        <div style="position:relative;background:#FFFFFF;border:2.5px solid #2A2722;border-radius:14px;padding:16px 18px 14px;max-width:420px;margin-top:6px">
+          <span style="position:absolute;top:-13px;left:14px;background:#E07B39;color:#FBF7EC;font-size:12.5px;font-weight:800;padding:3px 12px;border-radius:999px;border:2px solid #2A2722">범발톱</span>
+          <div style="font-weight:700;font-size:17px;line-height:1.45">어흥! 그 말은 이 몸이 접수한다!</div>
+          <div style="position:absolute;bottom:-11px;right:34px;width:18px;height:18px;background:#FFFFFF;border-right:2.5px solid #2A2722;border-bottom:2.5px solid #2A2722;transform:rotate(45deg)"></div>
+        </div>
+        <div style="font-size:13px;color:#5C5340;line-height:1.55">이름표 색 = 팀 색. 꼬리 방향은 말하는 캐릭터 쪽. TTS 재생과 동시 표시.</div>
+      </div>
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:22px;display:flex;flex-direction:column;gap:16px">
+        <div style="font-weight:700;font-size:15px">팀 정보 패널</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <div style="border:2.5px solid #2C5FA8;border-radius:14px;background:#FFFFFF;padding:12px 18px;display:flex;align-items:center;gap:14px">
+            <span style="font-family:Gugi;font-size:16px;color:#2C5FA8">우리 팀</span>
+            <div style="display:flex;gap:5px"><div style="width:16px;height:16px;border-radius:50%;background:#2C5FA8;border:2px solid #2A2722"></div><div style="width:16px;height:16px;border-radius:50%;background:#2C5FA8;border:2px solid #2A2722"></div><div style="width:16px;height:16px;border-radius:50%;background:#D9CBA8;border:2px dashed #8D8265"></div></div>
+            <span style="font-size:13px;font-weight:700;color:#5C5340">완주 1</span>
+          </div>
+          <div style="border:2.5px solid #E07B39;border-radius:14px;background:#FFFFFF;padding:12px 18px;display:flex;align-items:center;gap:14px">
+            <span style="font-family:Gugi;font-size:16px;color:#E07B39">상대 팀</span>
+            <div style="display:flex;gap:5px"><div style="width:16px;height:16px;border-radius:50%;background:#E07B39;border:2px solid #2A2722"></div><div style="width:16px;height:16px;border-radius:50%;background:#E07B39;border:2px solid #2A2722"></div><div style="width:16px;height:16px;border-radius:50%;background:#E07B39;border:2px solid #2A2722"></div></div>
+            <span style="font-size:13px;font-weight:700;color:#5C5340">완주 0</span>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#5C5340;line-height:1.55">채운 점 = 판 위 말, 점선 점 = 출발 전. 숫자보다 점이 한눈에 읽힌다.</div>
+      </div>
+      <div style="border:2px solid #2A2722;border-radius:16px;background:#FBF7EC;padding:22px;display:flex;flex-direction:column;gap:16px">
+        <div style="font-weight:700;font-size:15px">턴 표시 · 사운드 토글</div>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <span style="display:inline-flex;align-items:center;gap:9px;background:#2A2722;color:#FBF7EC;font-weight:700;font-size:14.5px;padding:9px 18px;border-radius:999px"><span style="width:10px;height:10px;border-radius:50%;background:#E9B94C"></span>범발톱의 차례</span>
+          <span style="display:inline-flex;align-items:center;gap:8px;background:#FBF7EC;border:2px solid #2A2722;font-weight:700;font-size:13.5px;padding:8px 16px;border-radius:999px;cursor:pointer">소리 켬 <span style="width:34px;height:18px;border-radius:999px;background:#2C5FA8;position:relative"><span style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#FBF7EC"></span></span></span>
+          <span style="display:inline-flex;align-items:center;gap:8px;background:#FBF7EC;border:2px solid #D9CBA8;color:#8D8265;font-weight:700;font-size:13.5px;padding:8px 16px;border-radius:999px;cursor:pointer">소리 끔 <span style="width:34px;height:18px;border-radius:999px;background:#D9CBA8;position:relative"><span style="position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#FBF7EC"></span></span></span>
+        </div>
+        <div style="font-size:13px;color:#5C5340;line-height:1.55">현재 턴 캐릭터에는 황색 점 + 캐릭터 스탠딩 하이라이트를 함께 준다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="08 게임 화면 목업">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:3px solid #2A2722;padding-bottom:10px;margin:64px 0 28px">
+      <span style="font-family:Gugi;font-size:18px;color:#BE3A2B">08</span>
+      <h2 style="font-family:Gugi;font-weight:400;font-size:30px;margin:0">게임 화면 목업</h2>
+      <span style="font-size:13px;color:#8D8265;margin-left:auto">Game Screen · Desktop</span>
+    </div>
+    <div style="border:3px solid #2A2722;border-radius:20px;overflow:hidden;background:#F6EFDE">
+      <div style="display:flex;height:8px"><div style="flex:1;background:#2C5FA8"></div><div style="flex:1;background:#BE3A2B"></div><div style="flex:1;background:#E9B94C"></div><div style="flex:1;background:#FBF7EC"></div><div style="flex:1;background:#2A2722"></div></div>
+      <div style="padding:20px 28px 26px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="border:2.5px solid #E07B39;border-radius:14px;background:#FFFFFF;padding:10px 16px;display:flex;align-items:center;gap:12px">
+            <span style="font-family:Gugi;font-size:15px;color:#E07B39">상대 팀</span>
+            <div style="display:flex;gap:4px"><div style="width:14px;height:14px;border-radius:50%;background:#E07B39;border:2px solid #2A2722"></div><div style="width:14px;height:14px;border-radius:50%;background:#E07B39;border:2px solid #2A2722"></div><div style="width:14px;height:14px;border-radius:50%;background:#E07B39;border:2px solid #2A2722"></div></div>
+            <span style="font-size:12.5px;font-weight:700;color:#5C5340">완주 0</span>
+          </div>
+          <span style="display:inline-flex;align-items:center;gap:9px;background:#2A2722;color:#FBF7EC;font-weight:700;font-size:14px;padding:8px 18px;border-radius:999px"><span style="width:9px;height:9px;border-radius:50%;background:#E9B94C"></span>{{turnLabel}}</span>
+          <div style="border:2.5px solid #2C5FA8;border-radius:14px;background:#FFFFFF;padding:10px 16px;display:flex;align-items:center;gap:12px">
+            <span style="font-family:Gugi;font-size:15px;color:#2C5FA8">우리 팀</span>
+            <div style="display:flex;gap:4px"><div style="width:14px;height:14px;border-radius:50%;background:#2C5FA8;border:2px solid #2A2722"></div><div style="width:14px;height:14px;border-radius:50%;background:#2C5FA8;border:2px solid #2A2722"></div><div style="width:14px;height:14px;border-radius:50%;background:#D9CBA8;border:2px dashed #8D8265"></div></div>
+            <span style="font-size:12.5px;font-weight:700;color:#5C5340">완주 1</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;padding:4px 0 0">{{boardMock}}</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:end">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <sc-if value="{{bubbleTiger}}" hint-placeholder-val="{{false}}">
+              <div style="position:relative;background:#FFFFFF;border:2.5px solid #2A2722;border-radius:14px;padding:12px 16px 10px;min-height:44px">
+                <span style="position:absolute;top:-12px;left:12px;background:#E07B39;color:#FBF7EC;font-size:12px;font-weight:800;padding:2px 11px;border-radius:999px;border:2px solid #2A2722">범발톱</span>
+                <div style="font-weight:700;font-size:15px;line-height:1.4">{{bubbleText}}</div>
+                <div style="position:absolute;bottom:-10px;left:30px;width:16px;height:16px;background:#FFFFFF;border-right:2.5px solid #2A2722;border-bottom:2.5px solid #2A2722;transform:rotate(45deg)"></div>
+              </div>
+            </sc-if>
+            <div style="height:150px;display:flex;align-items:flex-end">{{mockTiger}}</div>
+            <div style="font-family:Gugi;font-size:15px">범발톱</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <sc-if value="{{bubbleFox}}" hint-placeholder-val="{{false}}">
+              <div style="position:relative;background:#FFFFFF;border:2.5px solid #2A2722;border-radius:14px;padding:12px 16px 10px;min-height:44px">
+                <span style="position:absolute;top:-12px;left:12px;background:#E07B39;color:#FBF7EC;font-size:12px;font-weight:800;padding:2px 11px;border-radius:999px;border:2px solid #2A2722">꼬리아홉</span>
+                <div style="font-weight:700;font-size:15px;line-height:1.4">{{bubbleText}}</div>
+                <div style="position:absolute;bottom:-10px;left:30px;width:16px;height:16px;background:#FFFFFF;border-right:2.5px solid #2A2722;border-bottom:2.5px solid #2A2722;transform:rotate(45deg)"></div>
+              </div>
+            </sc-if>
+            <div style="height:150px;display:flex;align-items:flex-end">{{mockFox}}</div>
+            <div style="font-family:Gugi;font-size:15px">꼬리아홉</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <sc-if value="{{bubbleKkaki}}" hint-placeholder-val="{{false}}">
+              <div style="position:relative;background:#FFFFFF;border:2.5px solid #2A2722;border-radius:14px;padding:12px 16px 10px;min-height:44px">
+                <span style="position:absolute;top:-12px;left:12px;background:#2C5FA8;color:#FBF7EC;font-size:12px;font-weight:800;padding:2px 11px;border-radius:999px;border:2px solid #2A2722">깍이</span>
+                <div style="font-weight:700;font-size:15px;line-height:1.4">{{bubbleText}}</div>
+                <div style="position:absolute;bottom:-10px;left:30px;width:16px;height:16px;background:#FFFFFF;border-right:2.5px solid #2A2722;border-bottom:2.5px solid #2A2722;transform:rotate(45deg)"></div>
+              </div>
+            </sc-if>
+            <div style="height:150px;display:flex;align-items:flex-end">{{mockKkaki}}</div>
+            <div style="font-family:Gugi;font-size:15px">깍이</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="height:150px;display:flex;align-items:flex-end">{{mockPlayer}}</div>
+            <div style="font-family:Gugi;font-size:15px">플레이어</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;padding-top:10px">
+          <button style="font-family:Gugi;font-size:24px;color:#FBF7EC;background:#BE3A2B;border:none;border-radius:18px;padding:16px 46px;cursor:pointer;white-space:nowrap;box-shadow:0 6px 0 #8F2B20" style-hover="background:#D24936" style-active="transform:translateY(5px);box-shadow:0 1px 0 #8F2B20">윷 던지기!</button>
+        </div>
+      </div>
+    </div>
+    <p style="margin:14px 0 0;font-size:13.5px;color:#8D8265">CONCEPT §7.2 배치 그대로 — 적팀 좌 / 아군 우, 윷판이 화면 중심(60%+), 조작은 클릭 2회 이내. 말하는 캐릭터는 Tweaks의 <strong>bubbleActor</strong>로 전환.</p>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;bubbleActor&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;beomtiger&quot;,&quot;options&quot;:[&quot;beomtiger&quot;,&quot;ninetail&quot;,&quot;kkaki&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;게임 화면 목업&quot;},&quot;showBoardLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;윷판&quot;},&quot;boardHighlight&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;윷판&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const E = React.createElement;
+    const INK='#2A2722', HANJI='#FBF7EC', BLUE='#2C5FA8', RED='#BE3A2B', GOLD='#E9B94C', ORG='#E07B39', TIG='#E8933A', FOX='#D96635';
+
+    // ---------- face parts (100x100 space) ----------
+    const faceParts = (kind, emo) => {
+      const a = [];
+      if (kind === 'kkaki') {
+        a.push(E('path',{key:'t',d:'M34 26 Q26 12 40 16 Q35 22 40 27 Z',fill:BLUE,stroke:INK,strokeWidth:2}));
+        a.push(E('circle',{key:'h',cx:50,cy:52,r:33,fill:INK}));
+        a.push(E('ellipse',{key:'f',cx:50,cy:61,rx:23,ry:18,fill:HANJI}));
+      } else if (kind === 'tiger') {
+        a.push(E('circle',{key:'e1',cx:29,cy:24,r:10,fill:TIG,stroke:INK,strokeWidth:2.5}));
+        a.push(E('circle',{key:'e2',cx:71,cy:24,r:10,fill:TIG,stroke:INK,strokeWidth:2.5}));
+        a.push(E('circle',{key:'h',cx:50,cy:52,r:33,fill:TIG,stroke:INK,strokeWidth:2.5}));
+        ['M50 23 v10','M41 25 l4 9','M59 25 l-4 9'].forEach((d,i)=>a.push(E('path',{key:'s'+i,d,stroke:INK,strokeWidth:3,strokeLinecap:'round',fill:'none'})));
+        a.push(E('path',{key:'c1',d:'M18 46 h7 M18 54 h6',stroke:INK,strokeWidth:2.5,strokeLinecap:'round'}));
+        a.push(E('path',{key:'c2',d:'M82 46 h-7 M82 54 h-6',stroke:INK,strokeWidth:2.5,strokeLinecap:'round'}));
+        a.push(E('ellipse',{key:'m',cx:50,cy:64,rx:16,ry:12,fill:HANJI}));
+        a.push(E('path',{key:'n',d:'M46 58 h8 l-4 5 Z',fill:INK}));
+      } else if (kind === 'fox') {
+        a.push(E('path',{key:'e1',d:'M20 38 L30 10 L44 32 Z',fill:FOX,stroke:INK,strokeWidth:2.5,strokeLinejoin:'round'}));
+        a.push(E('path',{key:'e2',d:'M80 38 L70 10 L56 32 Z',fill:FOX,stroke:INK,strokeWidth:2.5,strokeLinejoin:'round'}));
+        a.push(E('path',{key:'i1',d:'M27 30 L31 19 L37 28 Z',fill:HANJI}));
+        a.push(E('path',{key:'i2',d:'M73 30 L69 19 L63 28 Z',fill:HANJI}));
+        a.push(E('circle',{key:'h',cx:50,cy:52,r:33,fill:FOX,stroke:INK,strokeWidth:2.5}));
+        a.push(E('ellipse',{key:'m',cx:50,cy:64,rx:15,ry:11,fill:HANJI}));
+        a.push(E('path',{key:'n',d:'M46 59 h8 l-4 5 Z',fill:INK}));
+      } else {
+        a.push(E('circle',{key:'h',cx:50,cy:52,r:33,fill:'#F3CFA6',stroke:INK,strokeWidth:2.5}));
+        a.push(E('path',{key:'hair',d:'M17 50 A33 33 0 0 1 83 50 Q73 37 50 36 Q27 37 17 50 Z',fill:INK}));
+        a.push(E('circle',{key:'bun',cx:50,cy:15,r:7,fill:INK}));
+      }
+      // eyes / brows
+      if (emo === 'joy') {
+        a.push(E('path',{key:'ey',d:'M32 49 Q37 43 42 49 M58 49 Q63 43 68 49',stroke:INK,strokeWidth:3,strokeLinecap:'round',fill:'none'}));
+        a.push(E('ellipse',{key:'b1',cx:28,cy:58,rx:5,ry:3.4,fill:'#F0A28E',opacity:.75}));
+        a.push(E('ellipse',{key:'b2',cx:72,cy:58,rx:5,ry:3.4,fill:'#F0A28E',opacity:.75}));
+      } else if (emo === 'anger') {
+        a.push(E('path',{key:'br',d:'M30 41 L43 46 M70 41 L57 46',stroke:INK,strokeWidth:3,strokeLinecap:'round'}));
+        a.push(E('circle',{key:'e1',cx:37,cy:50,r:3.2,fill:INK}));
+        a.push(E('circle',{key:'e2',cx:63,cy:50,r:3.2,fill:INK}));
+      } else if (emo === 'surprise') {
+        a.push(E('circle',{key:'w1',cx:37,cy:49,r:6,fill:'#FFF',stroke:INK,strokeWidth:2.2}));
+        a.push(E('circle',{key:'w2',cx:63,cy:49,r:6,fill:'#FFF',stroke:INK,strokeWidth:2.2}));
+        a.push(E('circle',{key:'p1',cx:37,cy:49,r:2.4,fill:INK}));
+        a.push(E('circle',{key:'p2',cx:63,cy:49,r:2.4,fill:INK}));
+      } else {
+        a.push(E('circle',{key:'e1',cx:37,cy:49,r:3.2,fill:INK}));
+        a.push(E('circle',{key:'e2',cx:63,cy:49,r:3.2,fill:INK}));
+      }
+      // mouth / beak
+      if (kind === 'kkaki') {
+        if (emo === 'surprise') a.push(E('path',{key:'bk',d:'M50 60 L42 66 L50 72 L58 66 Z',fill:GOLD,stroke:INK,strokeWidth:2,strokeLinejoin:'round'}));
+        else if (emo === 'joy') a.push(E('path',{key:'bk',d:'M42 63 L58 63 L50 71 Z M44 66 Q50 62 56 66',fill:GOLD,stroke:INK,strokeWidth:2,strokeLinejoin:'round'}));
+        else a.push(E('path',{key:'bk',d:'M42 64 L58 64 L50 71 Z',fill:GOLD,stroke:INK,strokeWidth:2,strokeLinejoin:'round'}));
+      } else {
+        if (emo === 'joy') a.push(E('path',{key:'mo',d:'M42 64 Q50 74 58 64 Z',fill:INK}));
+        else if (emo === 'anger') a.push(E('path',{key:'mo',d:'M44 72 Q50 66 56 72',stroke:INK,strokeWidth:3,strokeLinecap:'round',fill:'none'}));
+        else if (emo === 'surprise') a.push(E('ellipse',{key:'mo',cx:50,cy:70,rx:4,ry:5.5,fill:INK}));
+        else a.push(E('path',{key:'mo',d:'M44 68 Q50 72 56 68',stroke:INK,strokeWidth:3,strokeLinecap:'round',fill:'none'}));
+      }
+      return a;
+    };
+    const face = (kind, emo, size) => E('svg',{width:size,height:size,viewBox:'0 0 100 100'},faceParts(kind,emo));
+
+    // ---------- full bodies (160x220) ----------
+    const body = (kind, w) => {
+      const kids = [];
+      if (kind === 'kkaki') {
+        kids.push(E('path',{key:'tail',d:'M96 172 L146 196 L100 152 Z',fill:INK}));
+        kids.push(E('ellipse',{key:'bd',cx:78,cy:158,rx:42,ry:48,fill:INK}));
+        kids.push(E('ellipse',{key:'be',cx:74,cy:168,rx:23,ry:28,fill:HANJI}));
+        kids.push(E('ellipse',{key:'wg',cx:112,cy:150,rx:11,ry:26,fill:BLUE,stroke:INK,strokeWidth:2,transform:'rotate(-16 112 150)'}));
+        kids.push(E('path',{key:'ft',d:'M62 204 v9 M57 213 h11 M90 204 v9 M85 213 h11',stroke:'#D98E32',strokeWidth:3.5,strokeLinecap:'round'}));
+      } else if (kind === 'tiger') {
+        kids.push(E('path',{key:'tail',d:'M126 182 q28 -6 22 -30',stroke:TIG,strokeWidth:9,strokeLinecap:'round',fill:'none'}));
+        kids.push(E('circle',{key:'tt',cx:148,cy:150,r:6,fill:INK}));
+        kids.push(E('ellipse',{key:'bd',cx:80,cy:160,rx:47,ry:48,fill:TIG,stroke:INK,strokeWidth:2.5}));
+        kids.push(E('ellipse',{key:'be',cx:80,cy:170,rx:25,ry:28,fill:HANJI}));
+        kids.push(E('path',{key:'s1',d:'M38 138 q9 7 7 16 M122 138 q-9 7 -7 16 M35 172 h10 M125 172 h-10',stroke:INK,strokeWidth:3,strokeLinecap:'round',fill:'none'}));
+        kids.push(E('ellipse',{key:'f1',cx:58,cy:207,rx:13,ry:8,fill:TIG,stroke:INK,strokeWidth:2.5}));
+        kids.push(E('ellipse',{key:'f2',cx:102,cy:207,rx:13,ry:8,fill:TIG,stroke:INK,strokeWidth:2.5}));
+      } else if (kind === 'fox') {
+        kids.push(E('ellipse',{key:'t1',cx:124,cy:146,rx:17,ry:42,fill:FOX,stroke:INK,strokeWidth:2.5,transform:'rotate(-30 124 146)'}));
+        kids.push(E('ellipse',{key:'t1t',cx:140,cy:116,rx:9,ry:13,fill:HANJI,stroke:INK,strokeWidth:2,transform:'rotate(-30 140 116)'}));
+        kids.push(E('ellipse',{key:'t2',cx:132,cy:176,rx:12,ry:30,fill:FOX,stroke:INK,strokeWidth:2.5,transform:'rotate(-62 132 176)'}));
+        kids.push(E('ellipse',{key:'bd',cx:74,cy:162,rx:41,ry:46,fill:FOX,stroke:INK,strokeWidth:2.5}));
+        kids.push(E('ellipse',{key:'be',cx:72,cy:172,rx:22,ry:26,fill:HANJI}));
+        kids.push(E('ellipse',{key:'f1',cx:56,cy:207,rx:11,ry:7,fill:INK}));
+        kids.push(E('ellipse',{key:'f2',cx:94,cy:207,rx:11,ry:7,fill:INK}));
+      } else {
+        kids.push(E('path',{key:'jk',d:'M42 118 Q80 106 118 118 L126 168 Q80 180 34 168 Z',fill:HANJI,stroke:INK,strokeWidth:2.5,strokeLinejoin:'round'}));
+        kids.push(E('path',{key:'cl',d:'M64 112 L80 142 L96 112',stroke:BLUE,strokeWidth:7,fill:'none',strokeLinecap:'round'}));
+        kids.push(E('path',{key:'rb',d:'M80 142 q-8 14 1 26',stroke:RED,strokeWidth:5,fill:'none',strokeLinecap:'round'}));
+        kids.push(E('path',{key:'pt',d:'M40 164 Q80 154 120 164 L128 206 Q80 218 32 206 Z',fill:BLUE,stroke:INK,strokeWidth:2.5,strokeLinejoin:'round'}));
+        kids.push(E('ellipse',{key:'f1',cx:58,cy:212,rx:12,ry:6,fill:INK}));
+        kids.push(E('ellipse',{key:'f2',cx:102,cy:212,rx:12,ry:6,fill:INK}));
+      }
+      const headY = kind === 'player' ? 18 : 22;
+      return E('svg',{width:w,height:Math.round(w*220/160),viewBox:'0 0 160 220'},[
+        ...kids,
+        E('g',{key:'hd',transform:`translate(30,${headY})`},faceParts(kind, kind==='tiger'?'anger':(kind==='fox'?'neutral':'joy')))
+      ]);
+    };
+
+    // ---------- board ----------
+    const board = (size, o) => {
+      const C = 250, Pn = [60,136,212,288,364,440];
+      const nodes = [];
+      Pn.forEach(x => { nodes.push([x,60],[x,440]); });
+      [136,212,288,364].forEach(y => { nodes.push([60,y],[440,y]); });
+      [[60,60],[440,60],[60,440],[440,440]].forEach(([cx,cy]) => {
+        [1/3,2/3].forEach(t => nodes.push([cx+(C-cx)*t, cy+(C-cy)*t]));
+      });
+      const kids = [E('rect',{key:'bg',x:34,y:34,width:432,height:432,rx:28,fill:HANJI,stroke:'#D9CBA8',strokeWidth:2.5})];
+      [[60,60,440,60],[440,60,440,440],[440,440,60,440],[60,440,60,60],[60,60,440,440],[440,60,60,440]].forEach((l,i)=>
+        kids.push(E('line',{key:'l'+i,x1:l[0],y1:l[1],x2:l[2],y2:l[3],stroke:'#C9B78C',strokeWidth:3})));
+      if (o.highlight) {
+        kids.push(E('circle',{key:'hl0',cx:440,cy:136,r:24,fill:'rgba(233,185,76,.4)'}));
+        kids.push(E('circle',{key:'hl1',cx:440,cy:136,r:24,fill:'none',stroke:GOLD,strokeWidth:3.5,strokeDasharray:'7 6'}));
+      }
+      nodes.forEach(([x,y],i)=>kids.push(E('circle',{key:'n'+i,cx:x,cy:y,r:11,fill:HANJI,stroke:'#8A5A2E',strokeWidth:2.5})));
+      [[60,60],[440,60],[60,440],[440,440],[C,C]].forEach(([x,y],i)=>{
+        kids.push(E('circle',{key:'B'+i,cx:x,cy:y,r:19,fill:HANJI,stroke:INK,strokeWidth:3}));
+        kids.push(E('circle',{key:'b'+i,cx:x,cy:y,r:10.5,fill:'none',stroke:INK,strokeWidth:2.2}));
+      });
+      kids.push(E('circle',{key:'ct',cx:C,cy:C,r:4.5,fill:RED}));
+      if (o.labels) {
+        kids.push(E('text',{key:'t1',x:440,y:483,textAnchor:'middle',fontSize:19,fontWeight:800,fill:'#8D8265',fontFamily:'Pretendard'},'출발 · 도착'));
+        kids.push(E('text',{key:'t2',x:C,y:292,textAnchor:'middle',fontSize:18,fontWeight:800,fill:'#8D8265',fontFamily:'Pretendard'},'방'));
+        kids.push(E('text',{key:'t3',x:150,y:132,textAnchor:'middle',fontSize:15,fontWeight:700,fill:'#B4A780',fontFamily:'Pretendard',transform:'rotate(45 150 118)'},'지름길'));
+      }
+      const mal = (x,y,c,stack,pre) => {
+        const g = [E('circle',{key:pre+'o',cx:x,cy:y,r:14,fill:c,stroke:INK,strokeWidth:3}),
+                   E('circle',{key:pre+'i',cx:x,cy:y,r:5.5,fill:HANJI})];
+        if (stack) g.push(E('circle',{key:pre+'b',cx:x+11,cy:y-11,r:8,fill:GOLD,stroke:INK,strokeWidth:2}),
+                          E('text',{key:pre+'t',x:x+11,y:y-7,textAnchor:'middle',fontSize:11,fontWeight:800,fill:INK},'2'));
+        return g;
+      };
+      if (o.pieces) {
+        kids.push(...mal(440,288,BLUE,true,'m1'));
+        kids.push(...mal(212,60,ORG,false,'m2'));
+        kids.push(...mal(313,187,ORG,false,'m3'));
+      }
+      return E('svg',{width:size,height:size,viewBox:'0 0 500 500'},kids);
+    };
+
+    // ---------- exposed vals ----------
+    const kinds = [['깍이','kkaki'],['범발톱','tiger'],['꼬리아홉','fox'],['플레이어','player']];
+    const faceRows = kinds.map(([name,k])=>({name, n:face(k,'neutral',84), j:face(k,'joy',84), a:face(k,'anger',84), s:face(k,'surprise',84)}));
+
+    const actor = this.props.bubbleActor ?? 'beomtiger';
+    const texts = {
+      kkaki: '대장, 지금 업고 가는 게 이득이에요!',
+      beomtiger: '어흥! 그 말은 이 몸이 접수한다!',
+      ninetail: '어머, 거기 두시면… 제가 잡아먹겠는데요?'
+    };
+    return {
+      charKkaki: body('kkaki',138), charTiger: body('tiger',140), charFox: body('fox',140), charPlayer: body('player',138),
+      mockKkaki: body('kkaki',104), mockTiger: body('tiger',106), mockFox: body('fox',106), mockPlayer: body('player',104),
+      faceRows,
+      boardMain: board(470,{labels:this.props.showBoardLabels ?? true, pieces:true, highlight:this.props.boardHighlight ?? true}),
+      boardMock: board(340,{pieces:true, highlight:true}),
+      bubbleTiger: actor==='beomtiger', bubbleFox: actor==='ninetail', bubbleKkaki: actor==='kkaki',
+      bubbleText: texts[actor] ?? texts.beomtiger,
+      turnLabel: actor==='kkaki' ? '깍이의 차례' : (actor==='ninetail' ? '꼬리아홉의 차례' : '범발톱의 차례')
+    };
+  }
+}
+</script>
+</body>
+</html>

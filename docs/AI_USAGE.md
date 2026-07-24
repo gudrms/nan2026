@@ -15,7 +15,9 @@
 
 | 항목 | 출처 | 라이선스 |
 |---|---|---|
-| (없음 — 시각 요소 전량 SVG/CSS 코드 생성) | — | — |
+| (시각 요소 전량 SVG/CSS 코드 생성 — 이미지 에셋 0개) | — | — |
+| Pretendard 폰트 (본문·대사) | https://github.com/orioncactus/pretendard | SIL OFL 1.1 |
+| Gugi 폰트 (디스플레이·타이틀) | Google Fonts | SIL OFL 1.1 |
 | *추가 시 여기에 기록* | | |
 
 ---
