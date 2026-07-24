@@ -9,9 +9,9 @@
 
 ## M0. 프로젝트 스캐폴딩
 
-- [ ] Vite + React + TypeScript 프로젝트 초기화 (spec §2 디렉터리 골격 포함)
-- [ ] Vitest 설정 + 예시 테스트 1개 통과
-- [ ] `vercel.json` (정적 빌드 + `api/` 함수 라우팅) + `api/` 더미 함수 로컬 동작 확인
+- [x] Vite + React + TypeScript 프로젝트 초기화 (spec §2 디렉터리 골격 포함) — 빌드 45.99KB gzip 확인
+- [~] Vitest 설정 + 예시 테스트 1개 통과 — 설정 완료, M1 룰 테스트로 검증 예정
+- [~] `vercel.json` (정적 빌드 + `api/` 함수 라우팅) + `api/` 더미 함수 로컬 동작 확인 — 파일 생성, `vercel dev` 동작 확인은 M3에서
 - [ ] GitHub Public 저장소 push + docs·AGENTS 커밋 정리
 
 ## M1. 게임 코어 (`src/game/`) — verify: Vitest 전부 통과, 1000판 자동 대전 통계 출력, 기대값 봇 > 휴리스틱 봇
