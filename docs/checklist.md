@@ -40,15 +40,15 @@
 
 ## M3. LLM 대사 + TTS — verify: 잡기 이벤트에서 캐릭터가 실시간 대사를 말함, 키 제거 시 폴백 동작
 
-- [ ] `personas.ts` — 캐릭터 3인 페르소나 정의 + 이벤트별 프리셋 대사 풀 (폴백용)
-- [ ] `api/dialogue.ts` — 페르소나 시스템 프롬프트(서버 상수), Structured Output(text+emotion), 대화 메모리(history)
-- [ ] `api/tts.ts` — actor→보이스 매핑, mp3 반환
-- [ ] 프록시 공통 — 요청 크기 제한, IP 레이트 리밋, CORS 자체 도메인 한정
-- [ ] `dialogueClient.ts` — 3초 타임아웃 + 프리셋 폴백
-- [ ] `ttsClient.ts` — 순차 재생 큐(2개 초과 드롭), 음소거 토글, 첫 클릭 AudioContext 활성화
-- [ ] 이벤트 연동 — events.ts 트리거 → 대사·음성·표정(emotion)·말풍선 동시 재생
-- [ ] 페르소나 프롬프트 튜닝 — 캐릭터별 말투 구분·티키타카 확인 (과정을 AI_USAGE에 기록)
-- [ ] 폴백 스모크 테스트 — 키 없음/타임아웃 시 게임 정상 진행 확인
+- [x] 페르소나·프리셋 — 프리셋 대사 풀은 `src/ai/presetLines.ts`(M2 선반영), 페르소나 프롬프트는 서버 상수(`api/dialogue.ts` — 클라이언트 조작 불가)
+- [x] `api/dialogue.ts` — 페르소나 시스템 프롬프트(서버 상수), Structured Output(text+emotion), 대화 메모리(history 5개)
+- [x] `api/tts.ts` — actor→보이스 매핑(nova/onyx/shimmer + 톤 instructions), mp3 반환
+- [x] 프록시 공통 — 입력 길이 검증, IP 레이트 리밋(30/분), CORS 헤더 미부여(자체 도메인 한정)
+- [x] `dialogueClient.ts` — 3초 타임아웃 + 프리셋 폴백 — 폴백 경로 유닛 테스트 5종
+- [x] `ttsClient.ts` — 순차 재생 큐(2개 초과 드롭), 음소거 토글, 첫 클릭(시작 버튼) 후 재생으로 자동재생 정책 충족
+- [x] 이벤트 연동 — events.ts 트리거 → 대사·음성·표정(emotion)·말풍선 동시 재생 + 판세 요약(`situation.ts`) 프롬프트 주입
+- [ ] 페르소나 프롬프트 튜닝 — 실제 API 키로 캐릭터별 말투 구분·티키타카 확인 필요 (Vercel 배포 또는 `vercel dev` + 키)
+- [~] 폴백 스모크 테스트 — 키 없음 경로는 확인(로컬 404→프리셋으로 한 판 완주 E2E + 유닛 5종). 실 키 상태의 타임아웃 폴백은 배포 후 확인
 
 ## M4. 연출 다듬기 — verify: CONCEPT §10 데모 시나리오가 실제로 촬영 가능
 

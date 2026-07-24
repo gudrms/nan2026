@@ -98,4 +98,19 @@
 
 ---
 
-*다음 세션부터 이 아래에 추가: M3 LLM/TTS 프록시, …*
+### S5. 2026-07-25 — M3 인게임 LLM 대사 + TTS 파이프라인 (Claude Code)
+
+**AI에게 시킨 일과 진행 방식**
+- 서버리스 프록시 2종 구현: `api/dialogue.ts`(페르소나 프롬프트 서버 상수 + Structured Output으로 text·emotion 강제 + 대화 메모리), `api/tts.ts`(캐릭터별 보이스 nova/onyx/shimmer + 톤 instructions). 공통: 입력 검증·IP 레이트 리밋(30/분)
+- **인게임 페르소나 프롬프트 설계** (제출물 4의 "AI 대상 주요 프롬프트"): CONCEPT §4 캐릭터 사양 → 시스템 프롬프트 3종. 공통 규칙(한 문장 40자, 티키타카 지시) + 판세 요약(`situation.ts`)을 상황 컨텍스트로 주입
+- 클라이언트: 3초 타임아웃 폴백(`dialogueClient`), TTS 순차 재생 큐·2개 초과 드롭·음소거(`ttsClient`). useGame에 이벤트→대사·표정·음성 동시 파이프라인 통합
+- 검증: 폴백 경로 유닛 테스트 5종(네트워크 실패/503/빈 응답/emotion 오염) + **키 없는 로컬에서 한 판 완주 E2E** — "LLM이 죽어도 게임은 돈다"(ADR-001 D4)를 실측으로 입증
+
+**남은 검증** (실제 API 키 필요 — Vercel 배포 후)
+- 페르소나 말투 구분·티키타카 품질 튜닝, TTS 보이스 적합성, 실환경 타임아웃 폴백
+
+**산출물**: api/ 2종, src/ai/ 3종(dialogueClient·ttsClient·situation), useGame 파이프라인, 테스트 5종
+
+---
+
+*다음 세션부터 이 아래에 추가: 프롬프트 튜닝(키 연결 후), M4 연출, …*

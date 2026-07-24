@@ -19,8 +19,18 @@ const STANDING_ORDER: ActorId[] = ['beomtiger', 'ninetail', 'kkaki', 'player'];
 const RESULT_DELAY_MS = 3400;
 
 export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) => void }) {
-  const { state, actor, bubbles, playerCanThrow, playerCanMove, selectableMoves, playerThrow, playerSelect } =
-    useGame();
+  const {
+    state,
+    actor,
+    bubbles,
+    muted,
+    toggleMute,
+    playerCanThrow,
+    playerCanMove,
+    selectableMoves,
+    playerThrow,
+    playerSelect,
+  } = useGame();
 
   useEffect(() => {
     if (state.phase !== 'finished' || !state.winner) return;
@@ -76,6 +86,21 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
           >
             <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--gold)' }} />
             {turnLabel}
+            <button
+              onClick={toggleMute}
+              title={muted ? '소리 켜기' : '소리 끄기'}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--paper)',
+                cursor: 'pointer',
+                fontSize: 14,
+                padding: 0,
+                lineHeight: 1,
+              }}
+            >
+              {muted ? '🔇' : '🔊'}
+            </button>
           </span>
           <TeamPanel team="blue" mals={state.mals} />
         </div>

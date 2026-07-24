@@ -12,15 +12,21 @@ import {
 } from '../game/state';
 import { getMoves } from '../game/rules';
 import { chooseMoveExpecti, PERSONALITIES } from '../game/botAI';
-import { detectEvents } from '../game/events';
+import { detectEvents, type GameEvent } from '../game/events';
 import { linesForEvent, startLines, type DialogueLine } from '../ai/presetLines';
+import { requestLine } from '../ai/dialogueClient';
+import { describeSituation } from '../ai/situation';
+import { isMuted, setMuted, speak } from '../ai/ttsClient';
 
-// 게임 코어 ↔ React 연결점. 봇 3인(깍이·범발톱·꼬리아홉) 턴 자동 진행,
-// 이벤트 → 말풍선(프리셋 대사) 표시. M3에서 대사 소스만 LLM+TTS로 교체된다.
+// 게임 코어 ↔ React 연결점. 봇 3인 턴 자동 진행 + 대사 파이프라인:
+// 이벤트 → 프리셋 폴백과 함께 /api/dialogue 요청(3초 폴백) → 말풍선·표정·TTS 동시.
+// 대사·음성은 전부 비동기 곁가지 — 게임 진행은 네트워크와 무관하다 (spec §3.1).
 
 const BOT_THROW_DELAY = 900;
 const BOT_MOVE_DELAY = 1100;
-const BUBBLE_MS = 3200;
+const BUBBLE_MS = 3600;
+const LINE_STAGGER_MS = 450;
+const HISTORY_MAX = 8;
 
 export interface Bubble extends DialogueLine {
   id: number;
@@ -36,19 +42,42 @@ function initialMalsPerTeam(): number {
 export function useGame() {
   const [state, setState] = useState<GameState>(() => createInitialState(initialMalsPerTeam()));
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [muted, setMutedState] = useState(isMuted());
   const stateRef = useRef(state);
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
+  const historyRef = useRef<{ actor: string; text: string }[]>([]);
   const bubbleSeq = useRef(0);
 
-  const showLines = useCallback((lines: DialogueLine[]) => {
-    const next = lines.slice(0, 2).map((l) => ({ ...l, id: ++bubbleSeq.current }));
-    if (next.length === 0) return;
-    setBubbles(next);
-    const ids = new Set(next.map((b) => b.id));
+  const showLine = useCallback((line: DialogueLine) => {
+    const bubble: Bubble = { ...line, id: ++bubbleSeq.current };
+    // 같은 캐릭터의 이전 말풍선은 교체, 동시 표시는 최대 2개 (CONCEPT §6.2)
+    setBubbles((cur) => [...cur.filter((b) => b.actor !== line.actor).slice(-1), bubble]);
     setTimeout(() => {
-      setBubbles((cur) => cur.filter((b) => !ids.has(b.id)));
+      setBubbles((cur) => cur.filter((b) => b.id !== bubble.id));
     }, BUBBLE_MS);
   }, []);
+
+  /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS */
+  const speakEvent = useCallback(
+    (ev: GameEvent, nextState: GameState, fallbacks?: DialogueLine[]) => {
+      const lines = (fallbacks ?? linesForEvent(ev, rngRef.current)).slice(0, 2);
+      const situation = describeSituation(ev, nextState);
+      lines.forEach((fallback, i) => {
+        setTimeout(() => {
+          void requestLine(
+            { actor: fallback.actor, event: ev.type, situation, history: historyRef.current.slice(-5) },
+            fallback,
+          ).then((line) => {
+            showLine(line);
+            void speak(line.actor, line.text);
+            historyRef.current.push({ actor: line.actor, text: line.text });
+            if (historyRef.current.length > HISTORY_MAX) historyRef.current.shift();
+          });
+        }, i * LINE_STAGGER_MS);
+      });
+    },
+    [showLine],
+  );
 
   const apply = useCallback(
     (action: GameAction) => {
@@ -56,15 +85,15 @@ export function useGame() {
       const next = reduce(prev, action);
       stateRef.current = next;
       setState(next);
-      const lines = detectEvents(prev, action, next).flatMap((ev) => linesForEvent(ev, rngRef.current));
-      showLines(lines);
+      for (const ev of detectEvents(prev, action, next)) speakEvent(ev, next);
     },
-    [showLines],
+    [speakEvent],
   );
 
   // 게임 시작 인사
   useEffect(() => {
-    showLines(startLines(rngRef.current));
+    const ev: GameEvent = { type: 'GAME_START', actor: 'beomtiger', team: 'orange' };
+    speakEvent(ev, stateRef.current, startLines(rngRef.current));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -106,5 +135,21 @@ export function useGame() {
     [apply],
   );
 
-  return { state, actor, bubbles, playerCanThrow, playerCanMove, selectableMoves, playerThrow, playerSelect };
+  const toggleMute = useCallback(() => {
+    setMuted(!isMuted());
+    setMutedState(isMuted());
+  }, []);
+
+  return {
+    state,
+    actor,
+    bubbles,
+    muted,
+    toggleMute,
+    playerCanThrow,
+    playerCanMove,
+    selectableMoves,
+    playerThrow,
+    playerSelect,
+  };
 }
