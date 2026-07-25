@@ -19,7 +19,7 @@ export default function SpeechBubble({ actor, text }: { actor: ActorId; text: st
         borderRadius: 14,
         padding: '12px 14px 10px',
         maxWidth: 230,
-        minWidth: 120,
+        minWidth: 90,
       }}
     >
       <span

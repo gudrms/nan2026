@@ -172,10 +172,12 @@ export default function Character({ actor, emotion = 'neutral', talking = false,
   const headY = kind === 'player' ? 18 : 22;
   return (
     <svg
-      width={width}
-      height={Math.round((width * 220) / 160)}
       viewBox="0 0 160 220"
       style={{
+        width: '100%',
+        maxWidth: width,
+        height: 'auto',
+        display: 'block',
         filter: active ? 'drop-shadow(0 0 10px rgba(233,185,76,.85))' : undefined,
         transition: 'filter .25s, transform .25s',
         transform: active ? 'scale(1.05)' : undefined,

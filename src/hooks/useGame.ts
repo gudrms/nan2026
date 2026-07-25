@@ -13,10 +13,18 @@ import {
 import { getMoves } from '../game/rules';
 import { chooseMoveExpecti, PERSONALITIES } from '../game/botAI';
 import { detectEvents, type GameEvent } from '../game/events';
-import { linesForEvent, startLines, type DialogueLine } from '../ai/presetLines';
+import {
+  HINT_DESC,
+  hintFallback,
+  linesForEvent,
+  startLines,
+  type DialogueLine,
+  type HintKind,
+} from '../ai/presetLines';
 import { requestLine } from '../ai/dialogueClient';
 import { describeSituation } from '../ai/situation';
 import { isMuted, setMuted, speak } from '../ai/ttsClient';
+import { sfxBonus, sfxCapture, sfxFinish, sfxMove, sfxStack, sfxThrow } from '../audio/sfx';
 
 // 게임 코어 ↔ React 연결점. 봇 3인 턴 자동 진행 + 대사 파이프라인:
 // 이벤트 → 프리셋 폴백과 함께 /api/dialogue 요청(3초 폴백) → 말풍선·표정·TTS 동시.
@@ -27,6 +35,7 @@ const BOT_MOVE_DELAY = 1100;
 const BUBBLE_MS = 3600;
 const LINE_STAGGER_MS = 450;
 const HISTORY_MAX = 8;
+const HINT_DELAY_MS = 5000;
 
 export interface Bubble extends DialogueLine {
   id: number;
@@ -57,6 +66,17 @@ export function useGame() {
     }, BUBBLE_MS);
   }, []);
 
+  /** 대사 1줄 표시 + TTS + 대화 히스토리 반영 */
+  const deliverLine = useCallback(
+    (line: DialogueLine) => {
+      showLine(line);
+      void speak(line.actor, line.text);
+      historyRef.current.push({ actor: line.actor, text: line.text });
+      if (historyRef.current.length > HISTORY_MAX) historyRef.current.shift();
+    },
+    [showLine],
+  );
+
   /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS */
   const speakEvent = useCallback(
     (ev: GameEvent, nextState: GameState, fallbacks?: DialogueLine[]) => {
@@ -67,16 +87,11 @@ export function useGame() {
           void requestLine(
             { actor: fallback.actor, event: ev.type, situation, history: historyRef.current.slice(-5) },
             fallback,
-          ).then((line) => {
-            showLine(line);
-            void speak(line.actor, line.text);
-            historyRef.current.push({ actor: line.actor, text: line.text });
-            if (historyRef.current.length > HISTORY_MAX) historyRef.current.shift();
-          });
+          ).then(deliverLine);
         }, i * LINE_STAGGER_MS);
       });
     },
-    [showLine],
+    [deliverLine],
   );
 
   const apply = useCallback(
@@ -85,6 +100,13 @@ export function useGame() {
       const next = reduce(prev, action);
       stateRef.current = next;
       setState(next);
+      if (action.type === 'THROW') {
+        sfxThrow();
+        if (action.yut.bonus) sfxBonus();
+      } else if (action.move.captures.length > 0) sfxCapture();
+      else if (action.move.to === 'goal') sfxFinish();
+      else if (action.move.stacks.length > 0) sfxStack();
+      else sfxMove();
       for (const ev of detectEvents(prev, action, next)) speakEvent(ev, next);
     },
     [speakEvent],
@@ -121,6 +143,36 @@ export function useGame() {
   const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow';
   const playerCanMove = actor === 'player' && state.phase === 'awaitingMove';
   const selectableMoves = useMemo<Move[]>(() => (playerCanMove ? getMoves(state) : []), [playerCanMove, state]);
+
+  // 플레이어 장고(5초+) 시 깍이 훈수 (CONCEPT §6.2) — 판단 AI의 최선 수를 성격 AI가 말로 전달.
+  // 선택지가 2개 이상일 때만 (하나뿐이면 훈수가 무의미)
+  useEffect(() => {
+    if (!playerCanMove || selectableMoves.length < 2) return;
+    const timer = setTimeout(() => {
+      if (stateRef.current !== state) return;
+      const best = chooseMoveExpecti(state, selectableMoves, PERSONALITIES.kkaki);
+      const kind: HintKind =
+        best.captures.length > 0
+          ? 'capture'
+          : best.to === 'goal'
+            ? 'goal'
+            : best.stacks.length > 0
+              ? 'stack'
+              : best.to === 5 || best.to === 10
+                ? 'shortcut'
+                : 'advance';
+      void requestLine(
+        {
+          actor: 'kkaki',
+          event: 'HINT',
+          situation: `플레이어(대장)가 어느 말을 움직일지 한참 고민 중이다. 깍이가 계산한 최선의 수: ${HINT_DESC[kind]}. 대장에게 이 수를 짧게 훈수한다.`,
+          history: historyRef.current.slice(-5),
+        },
+        hintFallback(kind, rngRef.current),
+      ).then(deliverLine);
+    }, HINT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [playerCanMove, selectableMoves, state, deliverLine]);
 
   const playerThrow = useCallback(() => {
     if (stateRef.current.phase !== 'awaitingThrow') return;
