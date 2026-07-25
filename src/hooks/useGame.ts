@@ -32,7 +32,9 @@ import { sfxBonus, sfxCapture, sfxFinish, sfxMove, sfxStack, sfxThrow } from '..
 
 const BOT_THROW_DELAY = 900;
 const BOT_MOVE_DELAY = 1100;
-const BUBBLE_MS = 3600;
+const BUBBLE_MIN_MS = 4500; // 음성이 없을 때(폴백·음소거) 최소 표시 시간
+const BUBBLE_MAX_MS = 12000; // 안전 상한
+const BUBBLE_AFTER_VOICE_MS = 600; // 음성 종료 후 여운
 const LINE_STAGGER_MS = 450;
 const HISTORY_MAX = 8;
 const HINT_DELAY_MS = 5000;
@@ -57,24 +59,34 @@ export function useGame() {
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
   const bubbleSeq = useRef(0);
 
-  const showLine = useCallback((line: DialogueLine) => {
-    const bubble: Bubble = { ...line, id: ++bubbleSeq.current };
+  const pushBubble = useCallback((line: DialogueLine): number => {
+    const id = ++bubbleSeq.current;
     // 같은 캐릭터의 이전 말풍선은 교체, 동시 표시는 최대 2개 (CONCEPT §6.2)
-    setBubbles((cur) => [...cur.filter((b) => b.actor !== line.actor).slice(-1), bubble]);
-    setTimeout(() => {
-      setBubbles((cur) => cur.filter((b) => b.id !== bubble.id));
-    }, BUBBLE_MS);
+    setBubbles((cur) => [...cur.filter((b) => b.actor !== line.actor).slice(-1), { ...line, id }]);
+    return id;
   }, []);
 
-  /** 대사 1줄 표시 + TTS + 대화 히스토리 반영 */
+  const removeBubble = useCallback((id: number) => {
+    setBubbles((cur) => cur.filter((b) => b.id !== id));
+  }, []);
+
+  /** 대사 1줄 표시 + TTS + 히스토리. 말풍선은 음성 재생이 끝날 때까지 유지(싱크) */
   const deliverLine = useCallback(
     (line: DialogueLine) => {
-      showLine(line);
-      void speak(line.actor, line.text);
+      const id = pushBubble(line);
       historyRef.current.push({ actor: line.actor, text: line.text });
       if (historyRef.current.length > HISTORY_MAX) historyRef.current.shift();
+
+      const shownAt = Date.now();
+      const hardCap = setTimeout(() => removeBubble(id), BUBBLE_MAX_MS);
+      void speak(line.actor, line.text).then(() => {
+        // 음성 종료(또는 음성 없음) 시점 기준으로 정리 — 최소 표시 시간은 보장
+        clearTimeout(hardCap);
+        const remain = Math.max(BUBBLE_MIN_MS - (Date.now() - shownAt), BUBBLE_AFTER_VOICE_MS);
+        setTimeout(() => removeBubble(id), remain);
+      });
     },
-    [showLine],
+    [pushBubble, removeBubble],
   );
 
   /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS */
