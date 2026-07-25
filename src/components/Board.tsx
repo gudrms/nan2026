@@ -1,5 +1,7 @@
+import { useLayoutEffect, useState } from 'react';
 import { BOARD_COORDS } from '../game/board';
 import type { GameState, Mal, Move } from '../game/state';
+import { sfxCapture, sfxStack, sfxStep } from '../audio/sfx';
 
 // 윷판 렌더링 (SVG) — 디자인 시스템 §06. 노드는 원형, 모서리·방은 이중 원.
 // 이동 가능 위치는 황색 하이라이트, 클릭으로 말 선택 (조작 2회 중 2번째 클릭).
@@ -13,7 +15,11 @@ interface BoardProps {
   /** 플레이어가 선택 가능한 수 (빈 배열이면 하이라이트 없음) */
   selectable: Move[];
   onSelect: (move: Move) => void;
+  /** 직전 이동 — 경로를 따라 한 칸씩 스텝 연출 (F-8) */
+  lastMove: Move | null;
 }
+
+const STEP_MS = 200;
 
 interface MalGroup {
   key: string;
@@ -34,7 +40,36 @@ function malGroups(state: GameState): MalGroup[] {
   return [...map.values()];
 }
 
-export default function Board({ state, selectable, onSelect }: BoardProps) {
+export default function Board({ state, selectable, onSelect, lastMove }: BoardProps) {
+  // 이동 그룹의 표시 위치를 경로 노드로 오버라이드 → 한 칸씩 이동 연출
+  const [stepPos, setStepPos] = useState<{ moverId: string; node: number } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!lastMove || typeof lastMove.to !== 'number' || lastMove.path.length === 0) {
+      setStepPos(null);
+      return;
+    }
+    const { path, malIds, captures, stacks } = lastMove;
+    let i = 0;
+    setStepPos({ moverId: malIds[0], node: path[0] });
+    sfxStep(0);
+    const timer = setInterval(() => {
+      i += 1;
+      if (i >= path.length) {
+        clearInterval(timer);
+        setStepPos(null);
+        if (captures.length > 0) sfxCapture();
+        else if (stacks.length > 0) sfxStack();
+        return;
+      }
+      sfxStep(i);
+      setStepPos({ moverId: malIds[0], node: path[i] });
+    }, STEP_MS);
+    return () => clearInterval(timer);
+  }, [lastMove]);
+
+  const moverMal = stepPos ? state.mals.find((m) => m.id === stepPos.moverId) : null;
+
   // 클릭 대상 노드: 완주 수는 출발 노드(from), 그 외는 도착 노드
   const targets = selectable.map((move) => ({
     move,
@@ -90,14 +125,15 @@ export default function Board({ state, selectable, onSelect }: BoardProps) {
         );
       })}
 
-      {/* 말 — 같은 그룹은 위치가 바뀌면 CSS transition으로 미끄러진다. 팀색 후광으로 구분 강화 */}
+      {/* 말 — 스텝 연출 중이면 경로 노드 위치로, 아니면 상태 위치로. 팀색 후광으로 구분 강화 */}
       {malGroups(state).map((g) => {
-        const [x, y] = BOARD_COORDS[g.pos];
+        const stepping = moverMal && g.team === moverMal.team && g.pos === moverMal.pos && stepPos;
+        const [x, y] = BOARD_COORDS[stepping ? stepPos.node : g.pos];
         return (
           <g
             key={g.key}
             transform={`translate(${x},${y})`}
-            style={{ transition: 'transform .45s ease', filter: 'drop-shadow(0 2px 3px rgba(42,39,34,.4))' }}
+            style={{ transition: 'transform .16s ease', filter: 'drop-shadow(0 2px 3px rgba(42,39,34,.4))' }}
             pointerEvents="none"
           >
             <circle r={22} fill={TEAM_HALO[g.team]} />

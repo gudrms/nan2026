@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '../../hooks/useGame';
+import { sfxResult } from '../../audio/sfx';
 import { type ActorId, type TeamId } from '../../game/state';
 import Board from '../Board';
 import Character from '../Character';
@@ -18,6 +19,7 @@ const NAME_KO: Record<ActorId, string> = {
 const LEFT_SIDE: ActorId[] = ['beomtiger', 'ninetail'];
 const RIGHT_SIDE: ActorId[] = ['kkaki', 'player'];
 const RESULT_DELAY_MS = 3400;
+const TOSS_MS = 700; // 가락 토스 연출 시간 — 이후 결과 공개 (F-5)
 
 export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) => void }) {
   const {
@@ -26,12 +28,29 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
     bubbles,
     muted,
     toggleMute,
+    lastMove,
     playerCanThrow,
     playerCanMove,
     selectableMoves,
     playerThrow,
     playerSelect,
   } = useGame();
+
+  // 던지기 결과는 토스 연출 후 공개 — 그 전에는 이동 선택도 잠근다
+  const [resultShown, setResultShown] = useState(false);
+  useEffect(() => {
+    if (!state.pendingThrow) {
+      setResultShown(false);
+      return;
+    }
+    setResultShown(false);
+    const yut = state.pendingThrow;
+    const t = setTimeout(() => {
+      setResultShown(true);
+      sfxResult(yut.steps, yut.bonus);
+    }, TOSS_MS);
+    return () => clearTimeout(t);
+  }, [state.pendingThrow]);
 
   useEffect(() => {
     if (state.phase !== 'finished' || !state.winner) return;
@@ -131,7 +150,12 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
           {/* 중앙: 윷판 + 던지기 결과 오버레이 + 조작 */}
           <div className="board-cell">
             <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <Board state={state} selectable={selectableMoves} onSelect={playerSelect} />
+              <Board
+                state={state}
+                selectable={resultShown ? selectableMoves : []}
+                onSelect={playerSelect}
+                lastMove={lastMove}
+              />
               <div
                 style={{
                   position: 'absolute',
@@ -143,7 +167,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
                   pointerEvents: 'none',
                 }}
               >
-                <YutSticks yut={state.pendingThrow} />
+                <YutSticks yut={state.pendingThrow} revealed={resultShown} />
               </div>
             </div>
             <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -151,7 +175,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
                 <button className="btn-primary" onClick={playerThrow}>
                   윷 던지기!
                 </button>
-              ) : playerCanMove ? (
+              ) : playerCanMove && resultShown ? (
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--red)' }}>
                   움직일 칸을 골라주세요!
                 </div>

@@ -24,14 +24,15 @@ import {
 import { requestLine } from '../ai/dialogueClient';
 import { describeSituation } from '../ai/situation';
 import { isMuted, setMuted, speak } from '../ai/ttsClient';
-import { sfxBonus, sfxCapture, sfxFinish, sfxMove, sfxStack, sfxThrow } from '../audio/sfx';
+import { sfxFinish, sfxThrow } from '../audio/sfx';
 
 // 게임 코어 ↔ React 연결점. 봇 3인 턴 자동 진행 + 대사 파이프라인:
 // 이벤트 → 프리셋 폴백과 함께 /api/dialogue 요청(3초 폴백) → 말풍선·표정·TTS 동시.
 // 대사·음성은 전부 비동기 곁가지 — 게임 진행은 네트워크와 무관하다 (spec §3.1).
 
-const BOT_THROW_DELAY = 900;
-const BOT_MOVE_DELAY = 1100;
+// 봇 턴 템포 — 토스 연출(0.68s)+결과 읽기를 고려해 여유 있게 (기획 피드백 F-6)
+const BOT_THROW_DELAY = 1400;
+const BOT_MOVE_DELAY = 2000;
 const BUBBLE_MIN_MS = 4500; // 음성이 없을 때(폴백·음소거) 최소 표시 시간
 const BUBBLE_MAX_MS = 12000; // 안전 상한
 const BUBBLE_AFTER_VOICE_MS = 600; // 음성 종료 후 여운
@@ -54,6 +55,7 @@ export function useGame() {
   const [state, setState] = useState<GameState>(() => createInitialState(initialMalsPerTeam()));
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [muted, setMutedState] = useState(isMuted());
+  const [lastMove, setLastMove] = useState<Move | null>(null); // 스텝 이동 연출용 (F-8)
   const stateRef = useRef(state);
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
@@ -113,12 +115,11 @@ export function useGame() {
       stateRef.current = next;
       setState(next);
       if (action.type === 'THROW') {
-        sfxThrow();
-        if (action.yut.bonus) sfxBonus();
-      } else if (action.move.captures.length > 0) sfxCapture();
-      else if (action.move.to === 'goal') sfxFinish();
-      else if (action.move.stacks.length > 0) sfxStack();
-      else sfxMove();
+        sfxThrow(); // 결과음은 토스 연출 후 GameScreen에서, 이동음은 Board 스텝 연출에서
+      } else {
+        setLastMove(action.move);
+        if (action.move.to === 'goal') sfxFinish();
+      }
       for (const ev of detectEvents(prev, action, next)) speakEvent(ev, next);
     },
     [speakEvent],
@@ -210,6 +211,7 @@ export function useGame() {
     bubbles,
     muted,
     toggleMute,
+    lastMove,
     playerCanThrow,
     playerCanMove,
     selectableMoves,

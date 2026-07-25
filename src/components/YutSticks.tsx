@@ -53,8 +53,20 @@ function Stick({ flat }: { flat: boolean }) {
   );
 }
 
-export default function YutSticks({ yut }: { yut: YutThrow | null }) {
+export default function YutSticks({ yut, revealed }: { yut: YutThrow | null; revealed: boolean }) {
   if (!yut) return null;
+  if (!revealed) {
+    // 토스 연출 (F-5): 가락 4개가 회전하며 떠올랐다 떨어진다
+    return (
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', height: 120 }}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="stick-toss" style={{ animationDelay: `${i * 0.05}s` }}>
+            <Stick flat={false} />
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <div
       className="pop-in"

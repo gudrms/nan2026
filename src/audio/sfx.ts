@@ -63,44 +63,49 @@ function woodClick(delay: number, gain = 0.2) {
   src.start(t0);
 }
 
-/** 윷가락 4개가 바닥에 떨어지는 나무 소리 */
+/** 윷가락 4개가 바닥에 떨어지는 나무 소리 — 토스 애니메이션(0.68s) 낙하에 맞춰 지연 */
 export function sfxThrow() {
   if (isMuted()) return;
-  woodClick(0);
-  woodClick(0.07);
-  woodClick(0.12, 0.16);
-  woodClick(0.19, 0.12);
+  woodClick(0.5, 0.5);
+  woodClick(0.57, 0.45);
+  woodClick(0.62, 0.4);
+  woodClick(0.69, 0.32);
 }
 
-/** 말 이동 — 가벼운 팝 */
-export function sfxMove() {
+/** 도개걸윷모 결과음 — 등급이 오를수록 높은 음계 (도=1 ~ 모=5) */
+export function sfxResult(steps: number, bonus: boolean) {
   if (isMuted()) return;
-  tone(520, 0.09, { type: 'triangle', slideTo: 700, gain: 0.1 });
+  const base = [0, 392, 440, 494, 587, 659][Math.min(steps, 5)];
+  tone(base, 0.16, { gain: 0.26 });
+  tone(base * 1.5, 0.22, { gain: 0.24, delay: 0.1 });
+  if (bonus) {
+    tone(base * 2, 0.26, { gain: 0.24, delay: 0.22 });
+    woodClick(0.22, 0.3);
+  }
+}
+
+/** 스텝 이동 — 칸마다 올라가는 팝 (i = 스텝 인덱스) */
+export function sfxStep(i: number) {
+  if (isMuted()) return;
+  tone(480 + i * 70, 0.08, { type: 'triangle', slideTo: 620 + i * 70, gain: 0.22 });
 }
 
 /** 잡기 — 내리찍는 임팩트 */
 export function sfxCapture() {
   if (isMuted()) return;
-  tone(240, 0.22, { type: 'sawtooth', slideTo: 85, gain: 0.16 });
-  woodClick(0.02, 0.25);
+  tone(240, 0.24, { type: 'sawtooth', slideTo: 85, gain: 0.3 });
+  woodClick(0.02, 0.5);
 }
 
 /** 업기 — 상승 2음 */
 export function sfxStack() {
   if (isMuted()) return;
-  tone(523, 0.1, { type: 'triangle', gain: 0.1 });
-  tone(659, 0.14, { type: 'triangle', gain: 0.1, delay: 0.09 });
-}
-
-/** 윷·모 — 밝은 차임 */
-export function sfxBonus() {
-  if (isMuted()) return;
-  tone(784, 0.12, { gain: 0.11, delay: 0.15 });
-  tone(1047, 0.2, { gain: 0.11, delay: 0.27 });
+  tone(523, 0.1, { type: 'triangle', gain: 0.22 });
+  tone(659, 0.14, { type: 'triangle', gain: 0.22, delay: 0.09 });
 }
 
 /** 완주·승리 — 아르페지오 */
 export function sfxFinish() {
   if (isMuted()) return;
-  [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.16, { gain: 0.11, delay: i * 0.09 }));
+  [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, { gain: 0.24, delay: i * 0.09 }));
 }
