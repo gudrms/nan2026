@@ -45,6 +45,9 @@ function malGroups(state: GameState): MalGroup[] {
 export default function Board({ state, selectable, onSelect, lastMove, hintMove }: BoardProps) {
   // 이동 그룹의 표시 위치를 경로 노드로 오버라이드 → 한 칸씩 이동 연출
   const [stepPos, setStepPos] = useState<{ moverId: string; node: number } | null>(null);
+  // 잡기 이펙트 (I-5): 버스트 링 + 판 흔들림
+  const [captureFx, setCaptureFx] = useState<{ node: number; key: number } | null>(null);
+  const [shaking, setShaking] = useState(false);
 
   useLayoutEffect(() => {
     if (!lastMove || typeof lastMove.to !== 'number' || lastMove.path.length === 0) {
@@ -52,6 +55,7 @@ export default function Board({ state, selectable, onSelect, lastMove, hintMove 
       return;
     }
     const { path, malIds, captures, stacks } = lastMove;
+    const dest = path[path.length - 1];
     let i = 0;
     setStepPos({ moverId: malIds[0], node: path[0] });
     sfxStep(0);
@@ -60,8 +64,13 @@ export default function Board({ state, selectable, onSelect, lastMove, hintMove 
       if (i >= path.length) {
         clearInterval(timer);
         setStepPos(null);
-        if (captures.length > 0) sfxCapture();
-        else if (stacks.length > 0) sfxStack();
+        if (captures.length > 0) {
+          sfxCapture();
+          setCaptureFx({ node: dest, key: Date.now() });
+          setShaking(true);
+          setTimeout(() => setShaking(false), 480);
+          setTimeout(() => setCaptureFx(null), 800);
+        } else if (stacks.length > 0) sfxStack();
         return;
       }
       sfxStep(i);
@@ -80,7 +89,11 @@ export default function Board({ state, selectable, onSelect, lastMove, hintMove 
   }));
 
   return (
-    <svg viewBox="0 0 500 500" style={{ width: '100%', maxWidth: 470, display: 'block' }}>
+    <svg
+      viewBox="0 0 500 500"
+      className={shaking ? 'board-shake' : undefined}
+      style={{ width: '100%', maxWidth: 470, display: 'block' }}
+    >
       <rect x={34} y={34} width={432} height={432} rx={28} fill="var(--paper)" stroke="var(--line)" strokeWidth={2.5} />
       {(
         [
@@ -162,6 +175,18 @@ export default function Board({ state, selectable, onSelect, lastMove, hintMove 
           </g>
         );
       })}
+
+      {/* 잡기 버스트 이펙트 */}
+      {captureFx &&
+        (() => {
+          const [x, y] = BOARD_COORDS[captureFx.node];
+          return (
+            <g key={captureFx.key} transform={`translate(${x},${y})`} pointerEvents="none">
+              <circle className="capture-burst" r={20} fill="none" stroke="var(--red)" strokeWidth={6} />
+              <circle className="capture-burst slow" r={14} fill="rgba(190,58,43,.45)" />
+            </g>
+          );
+        })()}
 
       {/* 클릭 영역을 말 위로 다시 얹기 (잡기 대상 칸도 클릭 가능하도록) */}
       {targets.map(({ node, move, isGoal }) => {

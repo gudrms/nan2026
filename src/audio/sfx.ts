@@ -90,11 +90,13 @@ export function sfxStep(i: number) {
   tone(480 + i * 70, 0.08, { type: 'triangle', slideTo: 620 + i * 70, gain: 0.22 });
 }
 
-/** 잡기 — 내리찍는 임팩트 */
+/** 잡기 — 바닥 붐 + 내리찍기 이중 임팩트 (기획 피드백: 강하게) */
 export function sfxCapture() {
   if (isMuted()) return;
-  tone(240, 0.24, { type: 'sawtooth', slideTo: 85, gain: 0.3 });
-  woodClick(0.02, 0.5);
+  tone(80, 0.4, { type: 'sine', slideTo: 45, gain: 0.5 });
+  tone(260, 0.28, { type: 'sawtooth', slideTo: 70, gain: 0.34 });
+  woodClick(0, 0.6);
+  woodClick(0.06, 0.5);
 }
 
 /** 업기 — 상승 2음 */

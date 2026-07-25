@@ -299,6 +299,47 @@ button {
   animation: stick-toss 0.68s cubic-bezier(0.34, 0.6, 0.4, 1);
 }
 
+/* 잡기 이펙트 (I-5): 판 흔들림 + 버스트 링 */
+@keyframes board-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-6px, 2px);
+  }
+  40% {
+    transform: translate(5px, -3px);
+  }
+  60% {
+    transform: translate(-4px, -2px);
+  }
+  80% {
+    transform: translate(3px, 2px);
+  }
+}
+.board-shake {
+  animation: board-shake 0.45s ease;
+}
+@keyframes capture-burst {
+  from {
+    transform: scale(0.3);
+    opacity: 0.95;
+  }
+  to {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+.capture-burst {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: capture-burst 0.55s ease-out forwards;
+}
+.capture-burst.slow {
+  animation-duration: 0.8s;
+}
+
 /* 말풍선 등장 */
 @keyframes bubble-in {
   0% {

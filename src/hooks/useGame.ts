@@ -65,8 +65,11 @@ export function useGame() {
   const [muted, setMutedState] = useState(isMuted());
   const [lastMove, setLastMove] = useState<Move | null>(null); // 스텝 이동 연출용 (F-8)
   const [hintMove, setHintMove] = useState<Move | null>(null); // 훈수 추천 수 표시용 (F-1)
-  const [playerMood, setPlayerMood] = useState<Emotion>('neutral'); // 플레이어 표정 반응 (F-1)
+  // 팀 전체 표정 리액션 (I-4): 말풍선이 없어도 이벤트에 표정으로 반응
+  const NEUTRAL_MOODS: Record<ActorId, Emotion> = { player: 'neutral', kkaki: 'neutral', beomtiger: 'neutral', ninetail: 'neutral' };
+  const [moods, setMoods] = useState<Record<ActorId, Emotion>>(NEUTRAL_MOODS);
   const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [introDone, setIntroDone] = useState(false); // 시작 인사 종료 전에는 던지기 잠금 (I-2)
   const stateRef = useRef(state);
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
@@ -119,10 +122,12 @@ export function useGame() {
     [pushBubble, removeBubble],
   );
 
-  /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS */
+  /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS.
+   *  대사량 억제(I-1): 이벤트당 1줄, 드라마 핵심인 잡기·게임종료만 2줄 */
   const speakEvent = useCallback(
     (ev: GameEvent, nextState: GameState, fallbacks?: DialogueLine[]) => {
-      const lines = (fallbacks ?? linesForEvent(ev, rngRef.current)).slice(0, 2);
+      const maxLines = ev.type === 'CAPTURE' || ev.type === 'GAME_END' ? 2 : 1;
+      const lines = (fallbacks ?? linesForEvent(ev, rngRef.current)).slice(0, maxLines);
       const situation = describeSituation(ev, nextState);
       lines.forEach((fallback, i) => {
         setTimeout(() => {
@@ -153,28 +158,35 @@ export function useGame() {
       for (const ev of events) {
         // YUT_MO 대사는 결과 리액션(resultReactionLine)이 대체 — 중복 발화 방지
         if (ev.type !== 'YUT_MO') speakEvent(ev, next);
-        // 플레이어(말 없는 주인공)는 표정으로 반응
-        const mood: Emotion | null =
-          ev.type === 'GAME_END'
-            ? ev.detail?.winner === 'blue'
-              ? 'joy'
-              : 'anger'
-            : ev.type === 'CAPTURE'
-              ? ev.team === 'blue'
-                ? 'joy'
-                : 'anger'
-              : ev.type === 'YUT_MO' && ev.team === 'blue'
-                ? 'joy'
-                : ev.type === 'LEAD_CHANGE'
-                  ? ev.detail?.newLeader === 'blue'
-                    ? 'joy'
-                    : 'surprise'
-                  : null;
-        if (mood) {
-          setPlayerMood(mood);
+        // 팀 전체가 표정으로 반응 (I-4)
+        const blueTeam: ActorId[] = ['player', 'kkaki'];
+        const orangeTeam: ActorId[] = ['beomtiger', 'ninetail'];
+        let blueMood: Emotion | null = null;
+        let orangeMood: Emotion | null = null;
+        if (ev.type === 'GAME_END') {
+          blueMood = ev.detail?.winner === 'blue' ? 'joy' : 'anger';
+          orangeMood = ev.detail?.winner === 'orange' ? 'joy' : 'anger';
+        } else if (ev.type === 'CAPTURE') {
+          blueMood = ev.team === 'blue' ? 'joy' : 'anger';
+          orangeMood = ev.team === 'orange' ? 'joy' : 'surprise';
+          if (ev.team === 'blue') orangeMood = 'anger';
+        } else if (ev.type === 'YUT_MO') {
+          if (ev.team === 'blue') blueMood = 'joy';
+          else orangeMood = 'joy';
+        } else if (ev.type === 'LEAD_CHANGE') {
+          blueMood = ev.detail?.newLeader === 'blue' ? 'joy' : 'surprise';
+          orangeMood = ev.detail?.newLeader === 'orange' ? 'joy' : 'surprise';
+        }
+        if (blueMood || orangeMood) {
+          setMoods((cur) => {
+            const out = { ...cur };
+            if (blueMood) for (const a of blueTeam) out[a] = blueMood;
+            if (orangeMood) for (const a of orangeTeam) out[a] = orangeMood;
+            return out;
+          });
           if (moodTimer.current) clearTimeout(moodTimer.current);
           if (ev.type !== 'GAME_END') {
-            moodTimer.current = setTimeout(() => setPlayerMood('neutral'), 4500);
+            moodTimer.current = setTimeout(() => setMoods(NEUTRAL_MOODS), 4000);
           }
         }
       }
@@ -182,10 +194,20 @@ export function useGame() {
     [speakEvent],
   );
 
-  // 게임 시작 인사
+  // 게임 시작 인사 — 순차 발화, 끝나면 던지기 개방 (I-2)
   useEffect(() => {
     const ev: GameEvent = { type: 'GAME_START', actor: 'beomtiger', team: 'orange' };
-    speakEvent(ev, stateRef.current, startLines(rngRef.current));
+    const situation = describeSituation(ev, stateRef.current);
+    void (async () => {
+      for (const fb of startLines(rngRef.current)) {
+        const line = await requestLine(
+          { actor: fb.actor, event: 'GAME_START', situation, history: [] },
+          fb,
+        );
+        await deliverLine(line);
+      }
+      setIntroDone(true);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -195,22 +217,22 @@ export function useGame() {
   const openedTurnIdx = useRef(-1);
   useEffect(() => {
     if (driverBusy.current) return;
+    if (!introDone) return; // 시작 인사가 끝나야 턴 시작
     if (state.phase !== 'awaitingThrow' || state.winner) return;
     driverBusy.current = true;
     const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
     void (async () => {
       try {
-        // 첫 턴은 시작 인사(GAME_START)가 먼저 나가도록 잠깐 양보
-        if (openedTurnIdx.current === -1) await sleep(1200);
         for (;;) {
           const s = stateRef.current;
           if (s.phase !== 'awaitingThrow' || s.winner) break;
           const turnActor = currentActor(s);
-          // 턴 오프닝 — 추가 턴(같은 참가자 한 번 더)에는 생략
+          // 턴 오프닝 — 추가 턴(같은 참가자 한 번 더)에는 생략.
+          // 음성 종료를 기다리지 않는다 (I-1 템포) — 던지는 동안 말해도 자연스럽고, 음성 큐가 순서는 보장
           if (openedTurnIdx.current !== s.turnIdx) {
             openedTurnIdx.current = s.turnIdx;
-            await deliverLine(turnOpenLine(turnActor, rngRef.current));
-            await sleep(200);
+            void deliverLine(turnOpenLine(turnActor, rngRef.current));
+            await sleep(600);
           }
           if (turnActor === 'player') break; // 버튼 입력 대기 (안내는 이미 나감)
           if (stateRef.current.phase !== 'awaitingThrow') break;
@@ -218,8 +240,8 @@ export function useGame() {
           await sleep(TOSS_TOTAL_MS);
           const cur = stateRef.current;
           if (cur.phase !== 'awaitingMove' || !cur.pendingThrow) break;
-          await deliverLine(resultReactionLine(turnActor, cur.pendingThrow.name, rngRef.current));
-          await sleep(200);
+          void deliverLine(resultReactionLine(turnActor, cur.pendingThrow.name, rngRef.current));
+          await sleep(500);
           if (stateRef.current !== cur) break;
           const move = chooseMoveExpecti(cur, getMoves(cur), PERSONALITIES[turnActor]);
           apply({ type: 'MOVE', move });
@@ -229,10 +251,10 @@ export function useGame() {
         driverBusy.current = false;
       }
     })();
-  }, [state, apply, deliverLine]);
+  }, [state, introDone, apply, deliverLine]);
 
   const actor: ActorId = currentActor(state);
-  const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow';
+  const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow' && introDone;
   const playerCanMove = actor === 'player' && state.phase === 'awaitingMove';
   const selectableMoves = useMemo<Move[]>(() => (playerCanMove ? getMoves(state) : []), [playerCanMove, state]);
 
@@ -300,7 +322,7 @@ export function useGame() {
     toggleMute,
     lastMove,
     hintMove,
-    playerMood,
+    moods,
     playerCanThrow,
     playerCanMove,
     selectableMoves,

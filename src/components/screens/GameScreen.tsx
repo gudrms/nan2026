@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../../hooks/useGame';
 import { sfxResult } from '../../audio/sfx';
+import { setBgmMode, startBgm, stopBgm } from '../../audio/bgm';
 import { type ActorId, type TeamId } from '../../game/state';
 import Board from '../Board';
 import Character from '../Character';
@@ -30,13 +31,22 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
     toggleMute,
     lastMove,
     hintMove,
-    playerMood,
+    moods,
     playerCanThrow,
     playerCanMove,
     selectableMoves,
     playerThrow,
     playerSelect,
   } = useGame();
+
+  // 배경음악 (I-3): 기본 루프 ↔ 플레이어 차례엔 빠른 패턴
+  useEffect(() => {
+    startBgm();
+    return () => stopBgm();
+  }, []);
+  useEffect(() => {
+    setBgmMode(actor === 'player' && state.phase !== 'finished' ? 'player' : 'base');
+  }, [actor, state.phase]);
 
   // 던지기 결과는 토스 연출 후 공개 — 그 전에는 이동 선택도 잠근다
   const [resultShown, setResultShown] = useState(false);
@@ -85,7 +95,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
           <Character
             actor={a}
             width={96}
-            emotion={a === 'player' ? playerMood : (bubble?.emotion ?? 'neutral')}
+            emotion={bubble?.emotion ?? moods[a]}
             talking={!!bubble}
             active={isActive}
           />
