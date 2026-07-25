@@ -29,6 +29,8 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
     muted,
     toggleMute,
     lastMove,
+    hintMove,
+    playerMood,
     playerCanThrow,
     playerCanMove,
     selectableMoves,
@@ -72,11 +74,17 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
       <div key={a} className="char-block">
         {bubble && (
           <div className="char-bubble">
-            <SpeechBubble actor={a} text={bubble.text} />
+            <SpeechBubble actor={a} text={bubble.text} typing={bubble.typing} revealMs={bubble.revealMs} />
           </div>
         )}
         <div className={isActive ? 'turn-bob' : undefined}>
-          <Character actor={a} width={96} emotion={bubble?.emotion ?? 'neutral'} talking={!!bubble} active={isActive} />
+          <Character
+            actor={a}
+            width={96}
+            emotion={a === 'player' ? playerMood : (bubble?.emotion ?? 'neutral')}
+            talking={!!bubble}
+            active={isActive}
+          />
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 13.5 }}>{NAME_KO[a]}</div>
       </div>
@@ -155,6 +163,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
                 selectable={resultShown ? selectableMoves : []}
                 onSelect={playerSelect}
                 lastMove={lastMove}
+                hintMove={hintMove}
               />
               <div
                 style={{

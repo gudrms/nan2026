@@ -19,6 +19,7 @@ import {
   linesForEvent,
   startLines,
   type DialogueLine,
+  type Emotion,
   type HintKind,
 } from '../ai/presetLines';
 import { requestLine } from '../ai/dialogueClient';
@@ -42,7 +43,13 @@ const HINT_DELAY_MS = 5000;
 
 export interface Bubble extends DialogueLine {
   id: number;
+  /** 타자기 시작 여부 (음성 재생 시작 시 true) */
+  typing: boolean;
+  /** 전체 텍스트가 드러나는 시간(ms) — 음성 길이에 맞춤 */
+  revealMs: number;
 }
+
+const TYPE_MS_PER_CHAR = 45;
 
 /** 개발·데모용: URL ?mals=1~4 로 팀당 말 개수 조정 (기본 4 — 보류 결정 D-1) */
 function initialMalsPerTeam(): number {
@@ -56,6 +63,9 @@ export function useGame() {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [muted, setMutedState] = useState(isMuted());
   const [lastMove, setLastMove] = useState<Move | null>(null); // 스텝 이동 연출용 (F-8)
+  const [hintMove, setHintMove] = useState<Move | null>(null); // 훈수 추천 수 표시용 (F-1)
+  const [playerMood, setPlayerMood] = useState<Emotion>('neutral'); // 플레이어 표정 반응 (F-1)
+  const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
@@ -64,7 +74,10 @@ export function useGame() {
   const pushBubble = useCallback((line: DialogueLine): number => {
     const id = ++bubbleSeq.current;
     // 같은 캐릭터의 이전 말풍선은 교체, 동시 표시는 최대 2개 (CONCEPT §6.2)
-    setBubbles((cur) => [...cur.filter((b) => b.actor !== line.actor).slice(-1), { ...line, id }]);
+    setBubbles((cur) => [
+      ...cur.filter((b) => b.actor !== line.actor).slice(-1),
+      { ...line, id, typing: false, revealMs: line.text.length * TYPE_MS_PER_CHAR },
+    ]);
     return id;
   }, []);
 
@@ -72,7 +85,12 @@ export function useGame() {
     setBubbles((cur) => cur.filter((b) => b.id !== id));
   }, []);
 
-  /** 대사 1줄 표시 + TTS + 히스토리. 말풍선은 음성 재생이 끝날 때까지 유지(싱크) */
+  /** 타자기 시작 (아직 시작 전인 경우만 — 음성 페이스가 먼저 왔으면 유지) */
+  const startTyping = useCallback((id: number, revealMs: number) => {
+    setBubbles((cur) => cur.map((b) => (b.id === id && !b.typing ? { ...b, typing: true, revealMs } : b)));
+  }, []);
+
+  /** 대사 1줄 표시 + TTS + 히스토리. 타자기·수명 모두 음성 재생에 동기화 (F-2) */
   const deliverLine = useCallback(
     (line: DialogueLine) => {
       const id = pushBubble(line);
@@ -81,14 +99,22 @@ export function useGame() {
 
       const shownAt = Date.now();
       const hardCap = setTimeout(() => removeBubble(id), BUBBLE_MAX_MS);
-      void speak(line.actor, line.text).then(() => {
-        // 음성 종료(또는 음성 없음) 시점 기준으로 정리 — 최소 표시 시간은 보장
+      // 음성이 늦어도 2.5초 뒤엔 타자기 시작 (실패 대비 안전망)
+      const safety = setTimeout(() => startTyping(id, line.text.length * TYPE_MS_PER_CHAR), 2500);
+      void speak(line.actor, line.text, (durationSec) => {
+        // 실제 음성 재생 시작 → 음성 길이에 맞춘 페이스로 글자 스트리밍
+        clearTimeout(safety);
+        startTyping(id, durationSec ? durationSec * 1000 * 0.85 : line.text.length * TYPE_MS_PER_CHAR);
+      }).then(() => {
+        // 음성 종료(또는 음성 없음) — 타자기 미시작이면 즉시 시작, 수명 정리
+        clearTimeout(safety);
         clearTimeout(hardCap);
+        startTyping(id, line.text.length * TYPE_MS_PER_CHAR);
         const remain = Math.max(BUBBLE_MIN_MS - (Date.now() - shownAt), BUBBLE_AFTER_VOICE_MS);
         setTimeout(() => removeBubble(id), remain);
       });
     },
-    [pushBubble, removeBubble],
+    [pushBubble, removeBubble, startTyping],
   );
 
   /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS */
@@ -118,9 +144,37 @@ export function useGame() {
         sfxThrow(); // 결과음은 토스 연출 후 GameScreen에서, 이동음은 Board 스텝 연출에서
       } else {
         setLastMove(action.move);
+        setHintMove(null);
         if (action.move.to === 'goal') sfxFinish();
       }
-      for (const ev of detectEvents(prev, action, next)) speakEvent(ev, next);
+      const events = detectEvents(prev, action, next);
+      for (const ev of events) {
+        speakEvent(ev, next);
+        // 플레이어(말 없는 주인공)는 표정으로 반응
+        const mood: Emotion | null =
+          ev.type === 'GAME_END'
+            ? ev.detail?.winner === 'blue'
+              ? 'joy'
+              : 'anger'
+            : ev.type === 'CAPTURE'
+              ? ev.team === 'blue'
+                ? 'joy'
+                : 'anger'
+              : ev.type === 'YUT_MO' && ev.team === 'blue'
+                ? 'joy'
+                : ev.type === 'LEAD_CHANGE'
+                  ? ev.detail?.newLeader === 'blue'
+                    ? 'joy'
+                    : 'surprise'
+                  : null;
+        if (mood) {
+          setPlayerMood(mood);
+          if (moodTimer.current) clearTimeout(moodTimer.current);
+          if (ev.type !== 'GAME_END') {
+            moodTimer.current = setTimeout(() => setPlayerMood('neutral'), 4500);
+          }
+        }
+      }
     },
     [speakEvent],
   );
@@ -164,6 +218,7 @@ export function useGame() {
     const timer = setTimeout(() => {
       if (stateRef.current !== state) return;
       const best = chooseMoveExpecti(state, selectableMoves, PERSONALITIES.kkaki);
+      setHintMove(best); // 추천 칸을 판에 표시 (F-1)
       const kind: HintKind =
         best.captures.length > 0
           ? 'capture'
@@ -212,6 +267,8 @@ export function useGame() {
     muted,
     toggleMute,
     lastMove,
+    hintMove,
+    playerMood,
     playerCanThrow,
     playerCanMove,
     selectableMoves,

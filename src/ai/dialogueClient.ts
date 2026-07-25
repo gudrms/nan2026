@@ -13,7 +13,12 @@ export interface DialogueRequest {
   history: { actor: string; text: string }[];
 }
 
+// 로컬 vite dev에는 /api 함수가 없고 404 응답이 타임아웃까지 매달린다 →
+// dev는 프리셋 폴백 모드로 즉시 동작 (spec §5 "Vite dev + 프리셋 폴백 모드")
+const DEV_PRESET_MODE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export async function requestLine(req: DialogueRequest, fallback: DialogueLine): Promise<DialogueLine> {
+  if (DEV_PRESET_MODE) return fallback;
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);

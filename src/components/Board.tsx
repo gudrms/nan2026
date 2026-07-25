@@ -17,6 +17,8 @@ interface BoardProps {
   onSelect: (move: Move) => void;
   /** 직전 이동 — 경로를 따라 한 칸씩 스텝 연출 (F-8) */
   lastMove: Move | null;
+  /** 깍이 훈수가 추천한 수 — 해당 칸에 추천 배지 표시 (F-1) */
+  hintMove?: Move | null;
 }
 
 const STEP_MS = 200;
@@ -40,7 +42,7 @@ function malGroups(state: GameState): MalGroup[] {
   return [...map.values()];
 }
 
-export default function Board({ state, selectable, onSelect, lastMove }: BoardProps) {
+export default function Board({ state, selectable, onSelect, lastMove, hintMove }: BoardProps) {
   // 이동 그룹의 표시 위치를 경로 노드로 오버라이드 → 한 칸씩 이동 연출
   const [stepPos, setStepPos] = useState<{ moverId: string; node: number } | null>(null);
 
@@ -109,17 +111,27 @@ export default function Board({ state, selectable, onSelect, lastMove }: BoardPr
         출발 · 도착
       </text>
 
-      {/* 이동 가능 위치 하이라이트 (말 아래 레이어) */}
+      {/* 이동 가능 위치 하이라이트 (말 아래 레이어) — 크고 진하게 (F-1) */}
       {targets.map(({ node, isGoal, move }) => {
         const [x, y] = BOARD_COORDS[node];
+        const isHint =
+          hintMove && move.from === hintMove.from && move.to === hintMove.to;
         return (
           <g key={`hl-${node}-${isGoal}`} className="node-highlight" onClick={() => onSelect(move)}>
-            <circle cx={x} cy={y} r={24} fill="rgba(233,185,76,.4)" />
-            <circle cx={x} cy={y} r={24} fill="none" stroke="var(--gold)" strokeWidth={3.5} strokeDasharray="7 6" />
+            <circle cx={x} cy={y} r={28} fill={isHint ? 'rgba(233,185,76,.75)' : 'rgba(233,185,76,.52)'} />
+            <circle cx={x} cy={y} r={28} fill="none" stroke="var(--gold)" strokeWidth={4.5} strokeDasharray="8 6" />
             {isGoal && (
-              <text x={x} y={y - 30} textAnchor="middle" fontSize={15} fontWeight={800} fill="var(--red)">
+              <text x={x} y={y - 34} textAnchor="middle" fontSize={16} fontWeight={800} fill="var(--red)">
                 완주!
               </text>
+            )}
+            {isHint && (
+              <g transform={`translate(${x},${y - 38})`}>
+                <rect x={-38} y={-13} width={76} height={22} rx={11} fill="var(--blue)" stroke="var(--ink)" strokeWidth={2} />
+                <text y={3.5} textAnchor="middle" fontSize={12} fontWeight={800} fill="var(--paper)">
+                  깍이 추천!
+                </text>
+              </g>
             )}
           </g>
         );

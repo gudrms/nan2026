@@ -9,6 +9,8 @@ const MAX_QUEUE = 2;
 interface QueueItem {
   blob: Blob;
   resolve: () => void;
+  /** 실제 재생 시작 시 호출 (재생 길이 초 전달) — 말풍선 타자기 동기화용 */
+  onStart?: (durationSec: number | null) => void;
 }
 
 let muted = false;
@@ -50,12 +52,22 @@ function playNext() {
   current = { audio, finish };
   audio.onended = finish;
   audio.onerror = finish;
+  audio.onplaying = () => {
+    item.onStart?.(Number.isFinite(audio.duration) ? audio.duration : null);
+  };
   audio.play().catch(finish); // 자동재생 정책 등으로 거부되면 조용히 다음으로
 }
 
-/** 재생이 끝나면(또는 재생 불가로 스킵되면) resolve */
-export async function speak(actor: string, text: string): Promise<void> {
-  if (muted) return;
+/** 재생이 끝나면(또는 재생 불가로 스킵되면) resolve. onStart는 실제 재생 시작 시 호출 */
+// 로컬 vite dev에는 /api 함수가 없다 → 즉시 무음 스킵 (dialogueClient와 동일한 이유)
+const DEV_PRESET_MODE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
+export async function speak(
+  actor: string,
+  text: string,
+  onStart?: (durationSec: number | null) => void,
+): Promise<void> {
+  if (muted || DEV_PRESET_MODE) return;
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
@@ -69,7 +81,7 @@ export async function speak(actor: string, text: string): Promise<void> {
     if (!res.ok || !res.headers.get('content-type')?.includes('audio')) return;
     const blob = await res.blob();
     return new Promise<void>((resolve) => {
-      queue.push({ blob, resolve });
+      queue.push({ blob, resolve, onStart });
       while (queue.length > MAX_QUEUE) queue.shift()?.resolve(); // 오래된 것 드롭
       playNext();
     });
