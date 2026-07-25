@@ -56,6 +56,52 @@ export function endLines(winner: 'blue' | 'orange', rng: Rng): DialogueLine[] {
   ];
 }
 
+// 턴 오프닝 — 차례가 오면 캐릭터가 직접 알린다 (플레이어 턴은 깍이가 안내)
+export function turnOpenLine(turnActor: ActorId, rng: Rng): DialogueLine {
+  if (turnActor === 'player') {
+    return {
+      actor: 'kkaki',
+      text: pick(rng, ['대장 차례예요!', '대장, 시원하게 던져요!', '자, 대장 차례! 가보죠!', '이번엔 대장이에요!']),
+      emotion: 'joy',
+    };
+  }
+  const pools: Record<string, string[]> = {
+    kkaki: ['제 차례예요! 집중!', '깍깍, 이번엔 제가!', '제가 던질게요, 대장!'],
+    beomtiger: ['이 몸의 차례다!', '어흥! 다들 비켜라!', '자, 이 몸이 간다!', '내 차례군. 각오해라!'],
+    ninetail: ['제 차례네요, 후후.', '어디 볼까요…', '슬슬 제가 나설 차례죠.'],
+  };
+  return { actor: turnActor, text: pick(rng, pools[turnActor]), emotion: 'neutral' };
+}
+
+// 던지기 결과 리액션 — 던진 쪽이 결과에 한마디 (플레이어 턴은 깍이가 대신)
+export function resultReactionLine(turnActor: ActorId, name: YutName, rng: Rng): DialogueLine {
+  const speaker: ActorId = turnActor === 'player' ? 'kkaki' : turnActor;
+  const grade = name === 'yut' || name === 'mo' ? 'good' : name === 'do' ? 'bad' : 'mid';
+  const ko = YUT_KO[name];
+  const pools: Record<string, Record<string, string[]>> = {
+    kkaki: {
+      good: [`${ko}!! 깍깍, 대박이에요!`, `${ko} 나왔어요! 한 번 더!`],
+      mid: [`${ko}! 쏠쏠한데요?`, `${ko}이에요. 나쁘지 않아요!`],
+      bad: [`${ko}… 으, 아쉽다!`, `${ko}네요. 다음에 만회해요!`],
+    },
+    beomtiger: {
+      good: [`${ko}다!! 크하하!`, `봤느냐! ${ko}다!`],
+      mid: [`${ko}인가. 뭐, 나쁘지 않군.`, `${ko}! 이 정도면 충분하지.`],
+      bad: [`${ko}라니… 큼, 큼.`, `${ko}?! 가락이 잘못됐군!`],
+    },
+    ninetail: {
+      good: [`어머, ${ko}네요. 후후.`, `${ko}. 계산대로예요.`],
+      mid: [`${ko}. 예상 범위 안이죠.`, `${ko}이면 충분해요.`],
+      bad: [`…${ko}. 못 본 걸로 하죠.`, `${ko}이라니, 어머.`],
+    },
+  };
+  return {
+    actor: speaker,
+    text: pick(rng, pools[speaker][grade]),
+    emotion: grade === 'good' ? 'joy' : grade === 'bad' ? (speaker === 'ninetail' ? 'surprise' : 'anger') : 'neutral',
+  };
+}
+
 // 깍이 훈수(HINT) — 판단 AI가 계산한 최선 수의 유형별 폴백 대사
 export type HintKind = 'capture' | 'goal' | 'stack' | 'shortcut' | 'advance';
 

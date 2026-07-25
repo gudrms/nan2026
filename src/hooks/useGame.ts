@@ -17,7 +17,9 @@ import {
   HINT_DESC,
   hintFallback,
   linesForEvent,
+  resultReactionLine,
   startLines,
+  turnOpenLine,
   type DialogueLine,
   type Emotion,
   type HintKind,
@@ -26,15 +28,14 @@ import { requestLine } from '../ai/dialogueClient';
 import { describeSituation } from '../ai/situation';
 import { isMuted, setMuted, speak } from '../ai/ttsClient';
 import { sfxFinish, sfxThrow } from '../audio/sfx';
-import { stopNarrator } from '../audio/narrator';
 
 // 게임 코어 ↔ React 연결점. 봇 3인 턴 자동 진행 + 대사 파이프라인:
 // 이벤트 → 프리셋 폴백과 함께 /api/dialogue 요청(3초 폴백) → 말풍선·표정·TTS 동시.
 // 대사·음성은 전부 비동기 곁가지 — 게임 진행은 네트워크와 무관하다 (spec §3.1).
 
-// 봇 턴 템포 — 토스 연출(0.68s)+결과 읽기를 고려해 여유 있게 (기획 피드백 F-6)
-const BOT_THROW_DELAY = 1400;
-const BOT_MOVE_DELAY = 2000;
+// 턴 드라이버 템포 (H-4 동기식 진행)
+const TOSS_TOTAL_MS = 950; // 토스 0.7s + 결과 읽기 여유
+const STEP_SETTLE_MS = 600; // 스텝 이동 연출 여유
 const BUBBLE_MIN_MS = 4500; // 음성이 없을 때(폴백·음소거) 최소 표시 시간
 const BUBBLE_MAX_MS = 12000; // 안전 상한
 const BUBBLE_AFTER_VOICE_MS = 600; // 음성 종료 후 여운
@@ -104,7 +105,8 @@ export function useGame() {
 
       // 음성 큐가 너무 오래 밀리면 말풍선이라도 먼저 (안전망)
       const safety = setTimeout(() => show(defaultMs), VOICE_WAIT_MAX_MS);
-      void speak(line.actor, line.text, (durationSec) => {
+      // 반환 프로미스는 "음성 종료 시점"에 resolve — 턴 드라이버가 순차 진행에 사용 (H-4)
+      return speak(line.actor, line.text, (durationSec) => {
         clearTimeout(safety);
         show(durationSec ? durationSec * 1000 * 0.85 : defaultMs);
       }).then(() => {
@@ -149,7 +151,8 @@ export function useGame() {
       }
       const events = detectEvents(prev, action, next);
       for (const ev of events) {
-        speakEvent(ev, next);
+        // YUT_MO 대사는 결과 리액션(resultReactionLine)이 대체 — 중복 발화 방지
+        if (ev.type !== 'YUT_MO') speakEvent(ev, next);
         // 플레이어(말 없는 주인공)는 표정으로 반응
         const mood: Emotion | null =
           ev.type === 'GAME_END'
@@ -186,25 +189,47 @@ export function useGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 봇 턴 자동 진행 (깍이·범발톱·꼬리아홉)
+  // 턴 드라이버 (H-4 동기식): 차례 알림 → 던지기 → 결과 리액션 → 이동을 순차 진행.
+  // 각 대사는 음성 종료까지 기다린다 — "주거니 받거니" 리듬.
+  const driverBusy = useRef(false);
+  const openedTurnIdx = useRef(-1);
   useEffect(() => {
-    if (state.phase === 'finished') return;
-    const actor = currentActor(state);
-    if (actor === 'player') return;
-    const timer = setTimeout(
-      () => {
-        if (stateRef.current !== state) return; // 이미 진행됨 (StrictMode 중복 방지)
-        if (state.phase === 'awaitingThrow') {
+    if (driverBusy.current) return;
+    if (state.phase !== 'awaitingThrow' || state.winner) return;
+    driverBusy.current = true;
+    const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+    void (async () => {
+      try {
+        // 첫 턴은 시작 인사(GAME_START)가 먼저 나가도록 잠깐 양보
+        if (openedTurnIdx.current === -1) await sleep(1200);
+        for (;;) {
+          const s = stateRef.current;
+          if (s.phase !== 'awaitingThrow' || s.winner) break;
+          const turnActor = currentActor(s);
+          // 턴 오프닝 — 추가 턴(같은 참가자 한 번 더)에는 생략
+          if (openedTurnIdx.current !== s.turnIdx) {
+            openedTurnIdx.current = s.turnIdx;
+            await deliverLine(turnOpenLine(turnActor, rngRef.current));
+            await sleep(200);
+          }
+          if (turnActor === 'player') break; // 버튼 입력 대기 (안내는 이미 나감)
+          if (stateRef.current.phase !== 'awaitingThrow') break;
           apply({ type: 'THROW', yut: throwYut(rngRef.current) });
-        } else {
-          const move = chooseMoveExpecti(state, getMoves(state), PERSONALITIES[actor]);
+          await sleep(TOSS_TOTAL_MS);
+          const cur = stateRef.current;
+          if (cur.phase !== 'awaitingMove' || !cur.pendingThrow) break;
+          await deliverLine(resultReactionLine(turnActor, cur.pendingThrow.name, rngRef.current));
+          await sleep(200);
+          if (stateRef.current !== cur) break;
+          const move = chooseMoveExpecti(cur, getMoves(cur), PERSONALITIES[turnActor]);
           apply({ type: 'MOVE', move });
+          await sleep(STEP_SETTLE_MS);
         }
-      },
-      state.phase === 'awaitingThrow' ? BOT_THROW_DELAY : BOT_MOVE_DELAY,
-    );
-    return () => clearTimeout(timer);
-  }, [state, apply]);
+      } finally {
+        driverBusy.current = false;
+      }
+    })();
+  }, [state, apply, deliverLine]);
 
   const actor: ActorId = currentActor(state);
   const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow';
@@ -244,8 +269,15 @@ export function useGame() {
 
   const playerThrow = useCallback(() => {
     if (stateRef.current.phase !== 'awaitingThrow') return;
-    apply({ type: 'THROW', yut: throwYut(rngRef.current) });
-  }, [apply]);
+    const yut = throwYut(rngRef.current);
+    apply({ type: 'THROW', yut });
+    // 결과가 공개되면 깍이가 리액션 ("모예요, 대장!")
+    setTimeout(() => {
+      if (stateRef.current.pendingThrow === yut) {
+        void deliverLine(resultReactionLine('player', yut.name, rngRef.current));
+      }
+    }, TOSS_TOTAL_MS);
+  }, [apply, deliverLine]);
 
   const playerSelect = useCallback(
     (move: Move) => {
@@ -257,7 +289,6 @@ export function useGame() {
 
   const toggleMute = useCallback(() => {
     setMuted(!isMuted());
-    if (isMuted()) stopNarrator();
     setMutedState(isMuted());
   }, []);
 

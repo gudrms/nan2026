@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../../hooks/useGame';
 import { sfxResult } from '../../audio/sfx';
-import { announceResult, announceTurn } from '../../audio/narrator';
 import { type ActorId, type TeamId } from '../../game/state';
 import Board from '../Board';
 import Character from '../Character';
@@ -51,16 +50,9 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
     const t = setTimeout(() => {
       setResultShown(true);
       sfxResult(yut.steps, yut.bonus);
-      announceResult(yut.name); // 사회자: "걸!" (G-4)
     }, TOSS_MS);
     return () => clearTimeout(t);
   }, [state.pendingThrow]);
-
-  // 사회자: 턴이 넘어갈 때 "범발톱 차례" (G-3·4)
-  useEffect(() => {
-    if (state.phase === 'finished') return;
-    announceTurn(NAME_KO[actor]);
-  }, [actor, state.phase]);
 
   useEffect(() => {
     if (state.phase !== 'finished' || !state.winner) return;

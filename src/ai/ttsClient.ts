@@ -4,7 +4,10 @@
 // - 모든 실패는 조용히 무시(즉시 resolve) — 음성은 곁가지, 게임·말풍선은 항상 정상 동작
 
 const FETCH_TIMEOUT_MS = 5000;
-const MAX_QUEUE = 2;
+const MAX_QUEUE = 3;
+
+// 프리셋 대사(턴 오프닝·결과 리액션)는 반복되므로 세션 내 캐시 — TTS 재과금 방지
+const blobCache = new Map<string, Blob>();
 
 interface QueueItem {
   blob: Blob;
@@ -69,19 +72,24 @@ export async function speak(
 ): Promise<void> {
   if (muted || DEV_PRESET_MODE) return;
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
-    const res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ actor, text }),
-      signal: ctrl.signal,
-    });
-    clearTimeout(timer);
-    if (!res.ok || !res.headers.get('content-type')?.includes('audio')) return;
-    const blob = await res.blob();
+    const cacheKey = `${actor}|${text}`;
+    let blob = blobCache.get(cacheKey);
+    if (!blob) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ actor, text }),
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
+      if (!res.ok || !res.headers.get('content-type')?.includes('audio')) return;
+      blob = await res.blob();
+      blobCache.set(cacheKey, blob);
+    }
     return new Promise<void>((resolve) => {
-      queue.push({ blob, resolve, onStart });
+      queue.push({ blob: blob as Blob, resolve, onStart });
       while (queue.length > MAX_QUEUE) queue.shift()?.resolve(); // 오래된 것 드롭
       playNext();
     });
