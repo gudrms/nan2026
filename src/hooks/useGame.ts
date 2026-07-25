@@ -74,6 +74,19 @@ export function useGame() {
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
   const bubbleSeq = useRef(0);
+  // 발화 체인 (J-1 엄격 동기): 모든 대사(LLM 응답 대기 포함)를 이어붙이고,
+  // 턴 드라이버는 체인이 완전히 빌 때까지 기다린 뒤 다음 액션을 진행한다
+  const speechTail = useRef<Promise<void>>(Promise.resolve());
+  const trackSpeech = useCallback((p: Promise<void>) => {
+    speechTail.current = speechTail.current.then(() => p).catch(() => {});
+  }, []);
+  const waitSpeech = useCallback(async () => {
+    for (;;) {
+      const tail = speechTail.current;
+      await tail;
+      if (speechTail.current === tail) return; // 대기 중 새 대사가 안 붙었으면 종료
+    }
+  }, []);
 
   const pushBubble = useCallback((line: DialogueLine, revealMs: number): number => {
     const id = ++bubbleSeq.current;
@@ -109,7 +122,7 @@ export function useGame() {
       // 음성 큐가 너무 오래 밀리면 말풍선이라도 먼저 (안전망)
       const safety = setTimeout(() => show(defaultMs), VOICE_WAIT_MAX_MS);
       // 반환 프로미스는 "음성 종료 시점"에 resolve — 턴 드라이버가 순차 진행에 사용 (H-4)
-      return speak(line.actor, line.text, (durationSec) => {
+      const done = speak(line.actor, line.text, (durationSec) => {
         clearTimeout(safety);
         show(durationSec ? durationSec * 1000 * 0.85 : defaultMs);
       }).then(() => {
@@ -118,8 +131,10 @@ export function useGame() {
         const remain = Math.max(BUBBLE_MIN_MS - (Date.now() - shownAt), BUBBLE_AFTER_VOICE_MS);
         setTimeout(() => bubbleId !== null && removeBubble(bubbleId), remain);
       });
+      trackSpeech(done);
+      return done;
     },
-    [pushBubble, removeBubble],
+    [pushBubble, removeBubble, trackSpeech],
   );
 
   /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS.
@@ -130,15 +145,21 @@ export function useGame() {
       const lines = (fallbacks ?? linesForEvent(ev, rngRef.current)).slice(0, maxLines);
       const situation = describeSituation(ev, nextState);
       lines.forEach((fallback, i) => {
-        setTimeout(() => {
-          void requestLine(
-            { actor: fallback.actor, event: ev.type, situation, history: historyRef.current.slice(-5) },
-            fallback,
-          ).then(deliverLine);
-        }, i * LINE_STAGGER_MS);
+        // LLM 응답 대기까지 포함한 전체 파이프라인을 발화 체인에 등록 —
+        // 드라이버의 waitSpeech가 "대사가 완전히 끝날 때"까지 기다릴 수 있게 (J-1)
+        trackSpeech(
+          (async () => {
+            await new Promise((r) => setTimeout(r, i * LINE_STAGGER_MS));
+            const line = await requestLine(
+              { actor: fallback.actor, event: ev.type, situation, history: historyRef.current.slice(-5) },
+              fallback,
+            );
+            await deliverLine(line);
+          })(),
+        );
       });
     },
-    [deliverLine],
+    [deliverLine, trackSpeech],
   );
 
   const apply = useCallback(
@@ -224,15 +245,16 @@ export function useGame() {
     void (async () => {
       try {
         for (;;) {
+          // 이전 액션이 유발한 대사(잡기 반응 등, LLM 대기 포함)가 전부 끝나야 다음 진행 (J-1 엄격 동기)
+          await waitSpeech();
           const s = stateRef.current;
           if (s.phase !== 'awaitingThrow' || s.winner) break;
           const turnActor = currentActor(s);
-          // 턴 오프닝 — 추가 턴(같은 참가자 한 번 더)에는 생략.
-          // 음성 종료를 기다리지 않는다 (I-1 템포) — 던지는 동안 말해도 자연스럽고, 음성 큐가 순서는 보장
+          // 턴 오프닝 — 추가 턴(같은 참가자 한 번 더)에는 생략. 음성 종료까지 대기
           if (openedTurnIdx.current !== s.turnIdx) {
             openedTurnIdx.current = s.turnIdx;
-            void deliverLine(turnOpenLine(turnActor, rngRef.current));
-            await sleep(600);
+            await deliverLine(turnOpenLine(turnActor, rngRef.current));
+            await sleep(150);
           }
           if (turnActor === 'player') break; // 버튼 입력 대기 (안내는 이미 나감)
           if (stateRef.current.phase !== 'awaitingThrow') break;
@@ -240,8 +262,8 @@ export function useGame() {
           await sleep(TOSS_TOTAL_MS);
           const cur = stateRef.current;
           if (cur.phase !== 'awaitingMove' || !cur.pendingThrow) break;
-          void deliverLine(resultReactionLine(turnActor, cur.pendingThrow.name, rngRef.current));
-          await sleep(500);
+          await deliverLine(resultReactionLine(turnActor, cur.pendingThrow.name, rngRef.current));
+          await sleep(150);
           if (stateRef.current !== cur) break;
           const move = chooseMoveExpecti(cur, getMoves(cur), PERSONALITIES[turnActor]);
           apply({ type: 'MOVE', move });
