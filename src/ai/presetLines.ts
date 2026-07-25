@@ -56,6 +56,28 @@ export function endLines(winner: 'blue' | 'orange', rng: Rng): DialogueLine[] {
   ];
 }
 
+// 깍이 훈수(HINT) — 판단 AI가 계산한 최선 수의 유형별 폴백 대사
+export type HintKind = 'capture' | 'goal' | 'stack' | 'shortcut' | 'advance';
+
+export const HINT_DESC: Record<HintKind, string> = {
+  capture: '상대 말을 잡을 수 있는 이동',
+  goal: '말을 완주시키는 이동',
+  stack: '아군 말을 업는 이동',
+  shortcut: '지름길 모서리에 정확히 서는 이동',
+  advance: '가장 유리한 전진',
+};
+
+export function hintFallback(kind: HintKind, rng: Rng): DialogueLine {
+  const pools: Record<HintKind, string[]> = {
+    capture: ['대장, 지금 잡을 수 있어요! 노란 칸이요!', '깍깍! 저 상대 말, 그대로 잡아버려요!'],
+    goal: ['대장, 완주 각이에요! 내보내요!', '이번에 한 마리 들여보낼 수 있어요!'],
+    stack: ['업고 가는 게 이득이에요, 대장!', '둘이 뭉치면 든든해요! 업어요!'],
+    shortcut: ['모서리에 서면 지름길 탈 수 있어요!', '대장, 지름길 입구가 코앞이에요!'],
+    advance: ['고민되면 앞선 말을 미는 게 좋아요!', '침착하게, 제일 앞 말을 밀어봐요!'],
+  };
+  return { actor: 'kkaki', text: pick(rng, pools[kind]), emotion: 'joy' };
+}
+
 /** 이벤트 → 프리셋 대사 (한 이벤트당 최대 2줄 — CONCEPT §6.2) */
 export function linesForEvent(ev: GameEvent, rng: Rng): DialogueLine[] {
   switch (ev.type) {
