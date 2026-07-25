@@ -26,6 +26,7 @@ import { requestLine } from '../ai/dialogueClient';
 import { describeSituation } from '../ai/situation';
 import { isMuted, setMuted, speak } from '../ai/ttsClient';
 import { sfxFinish, sfxThrow } from '../audio/sfx';
+import { stopNarrator } from '../audio/narrator';
 
 // 게임 코어 ↔ React 연결점. 봇 3인 턴 자동 진행 + 대사 파이프라인:
 // 이벤트 → 프리셋 폴백과 함께 /api/dialogue 요청(3초 폴백) → 말풍선·표정·TTS 동시.
@@ -43,13 +44,12 @@ const HINT_DELAY_MS = 5000;
 
 export interface Bubble extends DialogueLine {
   id: number;
-  /** 타자기 시작 여부 (음성 재생 시작 시 true) */
-  typing: boolean;
   /** 전체 텍스트가 드러나는 시간(ms) — 음성 길이에 맞춤 */
   revealMs: number;
 }
 
 const TYPE_MS_PER_CHAR = 45;
+const VOICE_WAIT_MAX_MS = 4000; // 음성 큐 대기 상한 — 넘으면 말풍선 먼저 표시
 
 /** 개발·데모용: URL ?mals=1~4 로 팀당 말 개수 조정 (기본 4 — 보류 결정 D-1) */
 function initialMalsPerTeam(): number {
@@ -71,13 +71,10 @@ export function useGame() {
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
   const bubbleSeq = useRef(0);
 
-  const pushBubble = useCallback((line: DialogueLine): number => {
+  const pushBubble = useCallback((line: DialogueLine, revealMs: number): number => {
     const id = ++bubbleSeq.current;
     // 같은 캐릭터의 이전 말풍선은 교체, 동시 표시는 최대 2개 (CONCEPT §6.2)
-    setBubbles((cur) => [
-      ...cur.filter((b) => b.actor !== line.actor).slice(-1),
-      { ...line, id, typing: false, revealMs: line.text.length * TYPE_MS_PER_CHAR },
-    ]);
+    setBubbles((cur) => [...cur.filter((b) => b.actor !== line.actor).slice(-1), { ...line, id, revealMs }]);
     return id;
   }, []);
 
@@ -85,36 +82,39 @@ export function useGame() {
     setBubbles((cur) => cur.filter((b) => b.id !== id));
   }, []);
 
-  /** 타자기 시작 (아직 시작 전인 경우만 — 음성 페이스가 먼저 왔으면 유지) */
-  const startTyping = useCallback((id: number, revealMs: number) => {
-    setBubbles((cur) => cur.map((b) => (b.id === id && !b.typing ? { ...b, typing: true, revealMs } : b)));
-  }, []);
-
-  /** 대사 1줄 표시 + TTS + 히스토리. 타자기·수명 모두 음성 재생에 동기화 (F-2) */
+  /**
+   * 대사 1줄: 말풍선은 "음성 재생이 실제로 시작되는 순간" 표시된다 (G-1 싱크).
+   * AI 둘이 연달아 말하면 두 번째 말풍선은 자기 음성 차례가 올 때까지 뜨지 않는다.
+   * 음성이 없으면(폴백·음소거·dev) 즉시 표시. 타자기 페이스는 음성 길이에 맞춤.
+   */
   const deliverLine = useCallback(
     (line: DialogueLine) => {
-      const id = pushBubble(line);
       historyRef.current.push({ actor: line.actor, text: line.text });
       if (historyRef.current.length > HISTORY_MAX) historyRef.current.shift();
 
-      const shownAt = Date.now();
-      const hardCap = setTimeout(() => removeBubble(id), BUBBLE_MAX_MS);
-      // 음성이 늦어도 2.5초 뒤엔 타자기 시작 (실패 대비 안전망)
-      const safety = setTimeout(() => startTyping(id, line.text.length * TYPE_MS_PER_CHAR), 2500);
+      const defaultMs = line.text.length * TYPE_MS_PER_CHAR;
+      let bubbleId: number | null = null;
+      let shownAt = 0;
+      const show = (revealMs: number) => {
+        if (bubbleId !== null) return;
+        bubbleId = pushBubble(line, revealMs);
+        shownAt = Date.now();
+        setTimeout(() => bubbleId !== null && removeBubble(bubbleId), BUBBLE_MAX_MS);
+      };
+
+      // 음성 큐가 너무 오래 밀리면 말풍선이라도 먼저 (안전망)
+      const safety = setTimeout(() => show(defaultMs), VOICE_WAIT_MAX_MS);
       void speak(line.actor, line.text, (durationSec) => {
-        // 실제 음성 재생 시작 → 음성 길이에 맞춘 페이스로 글자 스트리밍
         clearTimeout(safety);
-        startTyping(id, durationSec ? durationSec * 1000 * 0.85 : line.text.length * TYPE_MS_PER_CHAR);
+        show(durationSec ? durationSec * 1000 * 0.85 : defaultMs);
       }).then(() => {
-        // 음성 종료(또는 음성 없음) — 타자기 미시작이면 즉시 시작, 수명 정리
         clearTimeout(safety);
-        clearTimeout(hardCap);
-        startTyping(id, line.text.length * TYPE_MS_PER_CHAR);
+        show(defaultMs); // 음성이 없었던 경우 — 즉시 표시
         const remain = Math.max(BUBBLE_MIN_MS - (Date.now() - shownAt), BUBBLE_AFTER_VOICE_MS);
-        setTimeout(() => removeBubble(id), remain);
+        setTimeout(() => bubbleId !== null && removeBubble(bubbleId), remain);
       });
     },
-    [pushBubble, removeBubble, startTyping],
+    [pushBubble, removeBubble],
   );
 
   /** 이벤트 1건 → 화자별 대사 요청 (LLM, 실패 시 프리셋 폴백) → 말풍선+TTS */
@@ -257,6 +257,7 @@ export function useGame() {
 
   const toggleMute = useCallback(() => {
     setMuted(!isMuted());
+    if (isMuted()) stopNarrator();
     setMutedState(isMuted());
   }, []);
 

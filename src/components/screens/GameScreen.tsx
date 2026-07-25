@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '../../hooks/useGame';
 import { sfxResult } from '../../audio/sfx';
+import { announceResult, announceTurn } from '../../audio/narrator';
 import { type ActorId, type TeamId } from '../../game/state';
 import Board from '../Board';
 import Character from '../Character';
@@ -50,9 +51,16 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
     const t = setTimeout(() => {
       setResultShown(true);
       sfxResult(yut.steps, yut.bonus);
+      announceResult(yut.name); // 사회자: "걸!" (G-4)
     }, TOSS_MS);
     return () => clearTimeout(t);
   }, [state.pendingThrow]);
+
+  // 사회자: 턴이 넘어갈 때 "범발톱 차례" (G-3·4)
+  useEffect(() => {
+    if (state.phase === 'finished') return;
+    announceTurn(NAME_KO[actor]);
+  }, [actor, state.phase]);
 
   useEffect(() => {
     if (state.phase !== 'finished' || !state.winner) return;
@@ -74,10 +82,14 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
       <div key={a} className="char-block">
         {bubble && (
           <div className="char-bubble">
-            <SpeechBubble actor={a} text={bubble.text} typing={bubble.typing} revealMs={bubble.revealMs} />
+            <SpeechBubble actor={a} text={bubble.text} revealMs={bubble.revealMs} />
           </div>
         )}
-        <div className={isActive ? 'turn-bob' : undefined}>
+        {isActive && <div className="turn-marker">▼</div>}
+        <div
+          className={isActive ? 'turn-bob' : undefined}
+          style={{ opacity: isActive || bubble ? 1 : 0.72, transition: 'opacity .3s' }}
+        >
           <Character
             actor={a}
             width={96}
@@ -86,7 +98,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
             active={isActive}
           />
         </div>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 13.5 }}>{NAME_KO[a]}</div>
+        <div className={`name-pill${isActive ? ' active' : ''}`}>{NAME_KO[a]}</div>
       </div>
     );
   };
