@@ -158,6 +158,109 @@ button {
   animation: pop-in 0.3s ease-out;
 }
 
+/* 게임 화면 좌우 팀 배치 (F-3·4) */
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(128px, 168px) minmax(0, 1fr) minmax(128px, 168px);
+  gap: 10px;
+  width: 100%;
+  align-items: stretch;
+}
+.board-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+.team-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px 12px;
+  border-radius: 16px;
+}
+.team-side.orange {
+  background: rgba(224, 123, 57, 0.13);
+  border: 2.5px solid rgba(224, 123, 57, 0.45);
+}
+.team-side.blue {
+  background: rgba(44, 95, 168, 0.11);
+  border: 2.5px solid rgba(44, 95, 168, 0.42);
+}
+.team-side .side-spacer {
+  flex: 1;
+}
+.char-block {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+}
+.char-bubble {
+  position: absolute;
+  bottom: calc(100% - 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 170px;
+  display: flex;
+  justify-content: center;
+  z-index: 5;
+}
+@media (max-width: 720px) {
+  .game-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+  .board-cell {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+  .team-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .team-side .side-spacer {
+    display: none;
+  }
+  .char-block {
+    width: 44%;
+  }
+}
+
+/* 현재 턴 캐릭터 바운스 (F-6) */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.turn-bob {
+  animation: bob 1.1s ease-in-out infinite;
+}
+
+/* 윷가락 토스 (F-5) */
+@keyframes stick-toss {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  45% {
+    transform: translateY(-44px) rotate(220deg);
+  }
+  100% {
+    transform: translateY(0) rotate(360deg);
+  }
+}
+.stick-toss {
+  animation: stick-toss 0.68s cubic-bezier(0.34, 0.6, 0.4, 1);
+}
+
 /* 말풍선 등장 */
 @keyframes bubble-in {
   0% {
