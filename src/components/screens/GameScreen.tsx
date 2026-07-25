@@ -32,6 +32,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
     lastMove,
     hintMove,
     moods,
+    extraTurn,
     playerCanThrow,
     playerCanMove,
     selectableMoves,
@@ -75,7 +76,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
       ? state.winner === 'blue'
         ? '우리 팀 승리!'
         : '상대 팀 승리!'
-      : `${NAME_KO[actor]}의 차례`;
+      : `${NAME_KO[actor]}의 차례${extraTurn ? ' — 한 번 더!' : ''}`;
 
   const renderChar = (a: ActorId) => {
     const bubble = bubbles.find((b) => b.actor === a);

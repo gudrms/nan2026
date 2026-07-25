@@ -18,15 +18,14 @@ const pick = <T,>(rng: Rng, arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 
 const YUT_KO: Record<YutName, string> = { do: '도', gae: '개', geol: '걸', yut: '윷', mo: '모' };
 
+// 시작 인사 — 템포를 위해 1줄만 (양 팀 대사 풀에서 무작위)
 export function startLines(rng: Rng): DialogueLine[] {
   return [
     pick(rng, [
-      { actor: 'beomtiger', text: '어흥! 이 몸을 이기면 병풍 속 명당을 내주지!', emotion: 'joy' },
-      { actor: 'beomtiger', text: '어디 한번 던져 보거라! 어흥!', emotion: 'joy' },
-    ] as DialogueLine[]),
-    pick(rng, [
-      { actor: 'kkaki', text: '대장, 저 허풍쟁이 콧대를 꺾어주자고요!', emotion: 'joy' },
-      { actor: 'kkaki', text: '제가 옆에서 훈수 넣을게요. 가보죠, 대장!', emotion: 'joy' },
+      { actor: 'beomtiger', text: '어흥! 이기면 명당은 내 거다!', emotion: 'joy' },
+      { actor: 'beomtiger', text: '어디 한번 던져 보거라!', emotion: 'joy' },
+      { actor: 'kkaki', text: '저 허풍쟁이 콧대를 꺾어줘요, 대장!', emotion: 'joy' },
+      { actor: 'kkaki', text: '제가 훈수 넣을게요. 가보죠!', emotion: 'joy' },
     ] as DialogueLine[]),
   ];
 }

@@ -70,6 +70,7 @@ export function useGame() {
   const [moods, setMoods] = useState<Record<ActorId, Emotion>>(NEUTRAL_MOODS);
   const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [introDone, setIntroDone] = useState(false); // 시작 인사 종료 전에는 던지기 잠금 (I-2)
+  const [extraTurn, setExtraTurn] = useState(false); // "한 번 더" 표시용 (윷·모·잡기 추가 턴)
   const stateRef = useRef(state);
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
@@ -170,10 +171,13 @@ export function useGame() {
       setState(next);
       if (action.type === 'THROW') {
         sfxThrow(); // 결과음은 토스 연출 후 GameScreen에서, 이동음은 Board 스텝 연출에서
+        setExtraTurn(false);
       } else {
         setLastMove(action.move);
         setHintMove(null);
         if (action.move.to === 'goal') sfxFinish();
+        // 같은 참가자가 이어서 던지면 "한 번 더" (윷·모·잡기) — 버그로 오해하지 않게 표시
+        setExtraTurn(next.phase === 'awaitingThrow' && next.turnIdx === prev.turnIdx);
       }
       const events = detectEvents(prev, action, next);
       for (const ev of events) {
@@ -345,6 +349,7 @@ export function useGame() {
     lastMove,
     hintMove,
     moods,
+    extraTurn,
     playerCanThrow,
     playerCanMove,
     selectableMoves,
