@@ -1,6 +1,6 @@
 import type { YutThrow, YutName } from '../game/throwYut';
 
-// 윷 던지기 결과 표시 — 가락 4개의 앞/뒤 상태를 그대로 연출에 재사용 (디자인 시스템 §04)
+// 윷 던지기 결과 — 윷판 위 오버레이 카드로 표시 (가락 4개의 앞/뒤 상태 재사용, 디자인 시스템 §04)
 
 const YUT_KO: Record<YutName, string> = { do: '도', gae: '개', geol: '걸', yut: '윷', mo: '모' };
 
@@ -8,19 +8,19 @@ function Stick({ flat }: { flat: boolean }) {
   return flat ? (
     <div
       style={{
-        width: 22,
-        height: 84,
-        borderRadius: 11,
+        width: 15,
+        height: 56,
+        borderRadius: 8,
         background: 'var(--wood-light)',
         border: '2px solid var(--wood)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: 5,
         color: 'var(--wood)',
         fontWeight: 800,
-        fontSize: 11,
+        fontSize: 8,
       }}
     >
       <span>✕</span>
@@ -30,9 +30,9 @@ function Stick({ flat }: { flat: boolean }) {
   ) : (
     <div
       style={{
-        width: 22,
-        height: 84,
-        borderRadius: 11,
+        width: 15,
+        height: 56,
+        borderRadius: 8,
         background: 'var(--wood)',
         border: '2px solid #6e4522',
         position: 'relative',
@@ -41,10 +41,10 @@ function Stick({ flat }: { flat: boolean }) {
       <div
         style={{
           position: 'absolute',
-          left: 4,
-          top: 9,
-          bottom: 9,
-          width: 3.5,
+          left: 3,
+          top: 7,
+          bottom: 7,
+          width: 2.5,
           borderRadius: 2,
           background: 'rgba(251,247,236,.35)',
         }}
@@ -54,19 +54,31 @@ function Stick({ flat }: { flat: boolean }) {
 }
 
 export default function YutSticks({ yut }: { yut: YutThrow | null }) {
-  if (!yut) return <div style={{ height: 108 }} />;
+  if (!yut) return null;
   return (
-    <div className="pop-in" style={{ height: 108, display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
-      <div style={{ display: 'flex', gap: 7 }}>
+    <div
+      className="pop-in"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        background: 'rgba(251,247,236,.94)',
+        border: '2.5px solid var(--ink)',
+        borderRadius: 14,
+        padding: '10px 16px',
+        boxShadow: '0 4px 0 rgba(42,39,34,.25)',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 5 }}>
         {yut.sticks.map((flat, i) => (
           <Stick key={i} flat={flat} />
         ))}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 34, color: yut.bonus ? 'var(--red)' : 'var(--ink)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 30, lineHeight: 1.1, color: yut.bonus ? 'var(--red)' : 'var(--ink)' }}>
           {YUT_KO[yut.name]}
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: yut.bonus ? 'var(--red)' : 'var(--text-sub)' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', color: yut.bonus ? 'var(--red)' : 'var(--text-sub)' }}>
           {yut.steps}칸{yut.bonus && ' · 한 번 더!'}
         </div>
       </div>

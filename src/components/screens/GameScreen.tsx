@@ -61,9 +61,9 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 6,
-          padding: '14px 16px 22px',
-          maxWidth: 860,
+          gap: 2,
+          padding: '10px 14px 18px',
+          maxWidth: 740,
           margin: '0 auto',
           width: '100%',
         }}
@@ -105,22 +105,36 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
           <TeamPanel team="blue" mals={state.mals} />
         </div>
 
-        {/* 중앙: 윷판 + 던지기 결과 */}
-        <Board state={state} selectable={selectableMoves} onSelect={playerSelect} />
-        <YutSticks yut={state.pendingThrow} />
+        {/* 중앙: 윷판 + 던지기 결과 오버레이 (판 상단 빈 영역) */}
+        <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <Board state={state} selectable={selectableMoves} onSelect={playerSelect} />
+          <div
+            style={{
+              position: 'absolute',
+              top: '13%',
+              left: 0,
+              right: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <YutSticks yut={state.pendingThrow} />
+          </div>
+        </div>
 
         {/* 캐릭터 스탠딩 + 말풍선 */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, alignItems: 'end', width: '100%' }}>
           {STANDING_ORDER.map((a) => {
             const bubble = bubbles.find((b) => b.actor === a);
             return (
-              <div key={a} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minHeight: 210 }}>
+              <div key={a} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minHeight: 186 }}>
                 <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
                   {bubble && <SpeechBubble actor={a} text={bubble.text} />}
                 </div>
                 <Character
                   actor={a}
-                  width={Math.min(118, 118)}
+                  width={98}
                   emotion={bubble?.emotion ?? 'neutral'}
                   talking={!!bubble}
                   active={state.phase !== 'finished' && a === actor}

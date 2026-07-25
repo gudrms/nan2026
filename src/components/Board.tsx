@@ -6,6 +6,7 @@ import type { GameState, Mal, Move } from '../game/state';
 
 const CORNERS = new Set([0, 5, 10, 15, 22]);
 const TEAM_COLOR = { blue: 'var(--blue)', orange: 'var(--orange)' } as const;
+const TEAM_HALO = { blue: 'rgba(44,95,168,.28)', orange: 'rgba(224,123,57,.32)' } as const;
 
 interface BoardProps {
   state: GameState;
@@ -42,7 +43,7 @@ export default function Board({ state, selectable, onSelect }: BoardProps) {
   }));
 
   return (
-    <svg viewBox="0 0 500 500" style={{ width: '100%', maxWidth: 520, display: 'block' }}>
+    <svg viewBox="0 0 500 500" style={{ width: '100%', maxWidth: 470, display: 'block' }}>
       <rect x={34} y={34} width={432} height={432} rx={28} fill="var(--paper)" stroke="var(--line)" strokeWidth={2.5} />
       {(
         [
@@ -89,17 +90,23 @@ export default function Board({ state, selectable, onSelect }: BoardProps) {
         );
       })}
 
-      {/* 말 — 같은 그룹은 위치가 바뀌면 CSS transition으로 미끄러진다 */}
+      {/* 말 — 같은 그룹은 위치가 바뀌면 CSS transition으로 미끄러진다. 팀색 후광으로 구분 강화 */}
       {malGroups(state).map((g) => {
         const [x, y] = BOARD_COORDS[g.pos];
         return (
-          <g key={g.key} transform={`translate(${x},${y})`} style={{ transition: 'transform .45s ease' }} pointerEvents="none">
-            <circle r={14} fill={TEAM_COLOR[g.team]} stroke="var(--ink)" strokeWidth={3} />
-            <circle r={5.5} fill="var(--paper)" />
+          <g
+            key={g.key}
+            transform={`translate(${x},${y})`}
+            style={{ transition: 'transform .45s ease', filter: 'drop-shadow(0 2px 3px rgba(42,39,34,.4))' }}
+            pointerEvents="none"
+          >
+            <circle r={22} fill={TEAM_HALO[g.team]} />
+            <circle r={16} fill={TEAM_COLOR[g.team]} stroke="var(--ink)" strokeWidth={3.5} />
+            <circle r={6} fill="var(--paper)" />
             {g.count > 1 && (
-              <g transform="translate(11,-11)">
-                <circle r={8} fill="var(--gold)" stroke="var(--ink)" strokeWidth={2} />
-                <text y={4} textAnchor="middle" fontSize={11} fontWeight={800} fill="var(--ink)">
+              <g transform="translate(13,-13)">
+                <circle r={9} fill="var(--gold)" stroke="var(--ink)" strokeWidth={2} />
+                <text y={4} textAnchor="middle" fontSize={12} fontWeight={800} fill="var(--ink)">
                   {g.count}
                 </text>
               </g>
