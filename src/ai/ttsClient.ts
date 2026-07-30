@@ -5,6 +5,8 @@
 
 const FETCH_TIMEOUT_MS = 5000;
 const MAX_QUEUE = 3;
+// TTS 원본이 다소 늘어져 살짝 빠르게 재생 (음정은 브라우저가 보존)
+const PLAYBACK_RATE = 1.25;
 
 // 프리셋 대사(턴 오프닝·결과 리액션)는 반복되므로 세션 내 캐시 — TTS 재과금 방지
 const blobCache = new Map<string, Blob>();
@@ -42,6 +44,7 @@ function playNext() {
   playing = true;
   const url = URL.createObjectURL(item.blob);
   const audio = new Audio(url);
+  audio.playbackRate = PLAYBACK_RATE;
   let done = false;
   const finish = () => {
     if (done) return;
@@ -56,7 +59,8 @@ function playNext() {
   audio.onended = finish;
   audio.onerror = finish;
   audio.onplaying = () => {
-    item.onStart?.(Number.isFinite(audio.duration) ? audio.duration : null);
+    // 말풍선 동기화는 배속 반영된 실제 재생 시간 기준
+    item.onStart?.(Number.isFinite(audio.duration) ? audio.duration / PLAYBACK_RATE : null);
   };
   audio.play().catch(finish); // 자동재생 정책 등으로 거부되면 조용히 다음으로
 }
