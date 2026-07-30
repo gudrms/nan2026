@@ -20,13 +20,34 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 
+// 인스턴스 전역 상한 — 분산 IP로 IP별 리밋을 우회해도 인스턴스당 비용이 유계
+let globalHits: number[] = [];
+function globalLimited(): boolean {
+  const now = Date.now();
+  globalHits = globalHits.filter((t) => now - t < 60_000);
+  if (globalHits.length >= 120) return true;
+  globalHits.push(now);
+  return false;
+}
+
+// 게임 페이지에서 온 요청만 허용 — 외부 스크립트의 프록시 남용 차단.
+// 브라우저는 POST에 항상 Origin을 실어 보내므로, 없거나 호스트 불일치면 거부.
+function badOrigin(req: any): boolean {
+  try {
+    return new URL(String(req.headers.origin ?? '')).host !== String(req.headers.host ?? '');
+  } catch {
+    return true;
+  }
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
+  if (badOrigin(req)) return res.status(403).json({ error: 'forbidden' });
   const key = process.env.OPENAI_API_KEY;
   if (!key) return res.status(503).json({ error: 'no api key' });
 
   const ip = String(req.headers['x-forwarded-for'] ?? 'local').split(',')[0].trim();
-  if (rateLimited(ip)) return res.status(429).json({ error: 'rate limited' });
+  if (rateLimited(ip) || globalLimited()) return res.status(429).json({ error: 'rate limited' });
 
   const { actor, text } = req.body ?? {};
   const voice = VOICES[actor];
