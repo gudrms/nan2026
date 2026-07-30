@@ -6,7 +6,7 @@
 const FETCH_TIMEOUT_MS = 5000;
 const MAX_QUEUE = 3;
 // TTS 원본이 다소 늘어져 살짝 빠르게 재생 (음정은 브라우저가 보존)
-const PLAYBACK_RATE = 1.25;
+const PLAYBACK_RATE = 1.5;
 
 // 프리셋 대사(턴 오프닝·결과 리액션)는 반복되므로 세션 내 캐시 — TTS 재과금 방지
 const blobCache = new Map<string, Blob>();
