@@ -2,21 +2,33 @@ import type { ActorId } from '../game/state';
 import type { Emotion } from '../ai/presetLines';
 import magpieIdle from '../assets/characters/magpie-idle.png';
 import magpieTalk from '../assets/characters/magpie-talk-breathe.gif';
+import magpieJoy from '../assets/characters/magpie-joy.png';
+import magpieAnger from '../assets/characters/magpie-anger.png';
+import magpieSurprise from '../assets/characters/magpie-surprise.png';
 import tigerIdle from '../assets/characters/tiger-idle.png';
 import tigerTalk from '../assets/characters/tiger-talk-breathe.gif';
+import tigerJoy from '../assets/characters/tiger-joy.png';
+import tigerAnger from '../assets/characters/tiger-anger.png';
+import tigerSurprise from '../assets/characters/tiger-surprise.png';
 import foxIdle from '../assets/characters/fox-idle.png';
 import foxTalk from '../assets/characters/fox-talk-breathe.gif';
+import foxJoy from '../assets/characters/fox-joy.png';
+import foxAnger from '../assets/characters/fox-anger.png';
+import foxSurprise from '../assets/characters/fox-surprise.png';
 import playerIdle from '../assets/characters/player-idle.png';
 import playerTalk from '../assets/characters/player-talk-breathe.gif';
+import playerJoy from '../assets/characters/player-joy.png';
+import playerAnger from '../assets/characters/player-anger.png';
+import playerSurprise from '../assets/characters/player-surprise.png';
 
-// 기획 제작 캐릭터 이미지 (ADR-003): 기본=idle PNG, 발화 중=talk GIF.
-// emotion 4종(LLM emotion → 표정 구동)은 emotion별 이미지가 나올 때까지 이모지 오버레이로 유지.
+// 기획 제작 캐릭터 이미지 (ADR-003): idle/talk + emotion(joy/anger/surprise) 정지 이미지.
+// talk GIF는 neutral 표정 기준 1종뿐이라, 발화 중 emotion 표시는 이모지 배지로 보완한다.
 
-const ART: Record<ActorId, { idle: string; talk: string }> = {
-  kkaki: { idle: magpieIdle, talk: magpieTalk },
-  beomtiger: { idle: tigerIdle, talk: tigerTalk },
-  ninetail: { idle: foxIdle, talk: foxTalk },
-  player: { idle: playerIdle, talk: playerTalk },
+const ART: Record<ActorId, { idle: string; talk: string; joy: string; anger: string; surprise: string }> = {
+  kkaki: { idle: magpieIdle, talk: magpieTalk, joy: magpieJoy, anger: magpieAnger, surprise: magpieSurprise },
+  beomtiger: { idle: tigerIdle, talk: tigerTalk, joy: tigerJoy, anger: tigerAnger, surprise: tigerSurprise },
+  ninetail: { idle: foxIdle, talk: foxTalk, joy: foxJoy, anger: foxAnger, surprise: foxSurprise },
+  player: { idle: playerIdle, talk: playerTalk, joy: playerJoy, anger: playerAnger, surprise: playerSurprise },
 };
 
 const EMO_BADGE: Record<Emotion, string | null> = {
@@ -37,11 +49,14 @@ export interface CharacterProps {
 
 export default function Character({ actor, emotion = 'neutral', talking = false, width = 120, active = false }: CharacterProps) {
   const art = ART[actor];
-  const badge = EMO_BADGE[emotion];
+  // 발화 중엔 talk GIF(호흡·입 움직임) 우선 — emotion 정지 이미지와 talking을 겸한 에셋은 없음
+  const src = talking ? art.talk : emotion === 'neutral' ? art.idle : art[emotion];
+  // talking 중에는 emotion이 이미지에 반영되지 않으므로 배지로 보완
+  const badge = talking ? EMO_BADGE[emotion] : null;
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: width }}>
       <img
-        src={talking ? art.talk : art.idle}
+        src={src}
         alt=""
         draggable={false}
         style={{
