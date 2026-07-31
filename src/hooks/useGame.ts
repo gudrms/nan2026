@@ -284,7 +284,7 @@ export function useGame() {
   const playerCanMove = actor === 'player' && state.phase === 'awaitingMove';
   const selectableMoves = useMemo<Move[]>(() => (playerCanMove ? getMoves(state) : []), [playerCanMove, state]);
 
-  // 플레이어 장고(5초+) 시 깍이 훈수 (CONCEPT §6.2) — 판단 AI의 최선 수를 성격 AI가 말로 전달.
+  // 플레이어 장고(5초+) 시 까비 훈수 (CONCEPT §6.2) — 판단 AI의 최선 수를 성격 AI가 말로 전달.
   // 선택지가 2개 이상일 때만 (하나뿐이면 훈수가 무의미)
   useEffect(() => {
     if (!playerCanMove || selectableMoves.length < 2) return;
@@ -306,7 +306,7 @@ export function useGame() {
         {
           actor: 'kkaki',
           event: 'HINT',
-          situation: `플레이어(대장)가 어느 말을 움직일지 한참 고민 중이다. 깍이가 계산한 최선의 수: ${HINT_DESC[kind]}. 대장에게 이 수를 짧게 훈수한다.`,
+          situation: `플레이어(대장)가 어느 말을 움직일지 한참 고민 중이다. 까비가 계산한 최선의 수: ${HINT_DESC[kind]}. 대장에게 이 수를 짧게 훈수한다.`,
           history: historyRef.current.slice(-5),
         },
         hintFallback(kind, rngRef.current),
@@ -319,7 +319,7 @@ export function useGame() {
     if (stateRef.current.phase !== 'awaitingThrow') return;
     const yut = throwYut(rngRef.current);
     apply({ type: 'THROW', yut });
-    // 결과가 공개되면 깍이가 리액션 ("모예요, 대장!")
+    // 결과가 공개되면 까비가 리액션 ("모예요, 대장!")
     setTimeout(() => {
       if (stateRef.current.pendingThrow === yut) {
         void deliverLine(resultReactionLine('player', yut.name, rngRef.current));

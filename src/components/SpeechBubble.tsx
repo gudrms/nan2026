@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { ACTOR_TEAM, type ActorId } from '../game/state';
 
 const NAME_KO: Record<ActorId, string> = {
-  player: '플레이어',
-  kkaki: '깍이',
-  beomtiger: '범발톱',
-  ninetail: '꼬리아홉',
+  player: '도령',
+  kkaki: '까비',
+  beomtiger: '범이',
+  ninetail: '여울',
 };
 
 interface SpeechBubbleProps {

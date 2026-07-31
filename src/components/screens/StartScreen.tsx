@@ -29,7 +29,7 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
         }}
       >
         <h1 style={{ fontSize: 'clamp(34px, 7vw, 56px)', lineHeight: 1.15 }}>
-          윷놀이: <span style={{ color: 'var(--red)' }}>까치호랑이</span> 한판
+          윷놀이 : <span style={{ color: 'var(--red)' }}>까치호랑이</span>
         </h1>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(4px, 2vw, 20px)', flexWrap: 'wrap', justifyContent: 'center' }}>
           <Character actor="beomtiger" emotion="joy" width={110} />

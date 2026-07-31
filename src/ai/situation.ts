@@ -7,10 +7,10 @@ import type { YutName } from '../game/throwYut';
 
 const YUT_KO: Record<YutName, string> = { do: '도', gae: '개', geol: '걸', yut: '윷', mo: '모' };
 const ACTOR_KO: Record<string, string> = {
-  player: '플레이어',
-  kkaki: '깍이',
-  beomtiger: '범발톱',
-  ninetail: '꼬리아홉',
+  player: '도령',
+  kkaki: '까비',
+  beomtiger: '범이',
+  ninetail: '여울',
 };
 
 export function describeSituation(ev: GameEvent, state: GameState): string {

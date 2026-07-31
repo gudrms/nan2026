@@ -17,7 +17,7 @@ interface BoardProps {
   onSelect: (move: Move) => void;
   /** 직전 이동 — 경로를 따라 한 칸씩 스텝 연출 (F-8) */
   lastMove: Move | null;
-  /** 깍이 훈수가 추천한 수 — 해당 칸에 추천 배지 표시 (F-1) */
+  /** 까비 훈수가 추천한 수 — 해당 칸에 추천 배지 표시 (F-1) */
   hintMove?: Move | null;
 }
 
@@ -142,7 +142,7 @@ export default function Board({ state, selectable, onSelect, lastMove, hintMove 
               <g transform={`translate(${x},${y - 38})`}>
                 <rect x={-38} y={-13} width={76} height={22} rx={11} fill="var(--blue)" stroke="var(--ink)" strokeWidth={2} />
                 <text y={3.5} textAnchor="middle" fontSize={12} fontWeight={800} fill="var(--paper)">
-                  깍이 추천!
+                  까비 추천!
                 </text>
               </g>
             )}

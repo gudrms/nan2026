@@ -55,7 +55,7 @@ export function endLines(winner: 'blue' | 'orange', rng: Rng): DialogueLine[] {
   ];
 }
 
-// 턴 오프닝 — 차례가 오면 캐릭터가 직접 알린다 (플레이어 턴은 깍이가 안내)
+// 턴 오프닝 — 차례가 오면 캐릭터가 직접 알린다 (플레이어 턴은 까비가 안내)
 export function turnOpenLine(turnActor: ActorId, rng: Rng): DialogueLine {
   if (turnActor === 'player') {
     return {
@@ -72,7 +72,7 @@ export function turnOpenLine(turnActor: ActorId, rng: Rng): DialogueLine {
   return { actor: turnActor, text: pick(rng, pools[turnActor]), emotion: 'neutral' };
 }
 
-// 던지기 결과 리액션 — 던진 쪽이 결과에 한마디 (플레이어 턴은 깍이가 대신)
+// 던지기 결과 리액션 — 던진 쪽이 결과에 한마디 (플레이어 턴은 까비가 대신)
 export function resultReactionLine(turnActor: ActorId, name: YutName, rng: Rng): DialogueLine {
   const speaker: ActorId = turnActor === 'player' ? 'kkaki' : turnActor;
   const grade = name === 'yut' || name === 'mo' ? 'good' : name === 'do' ? 'bad' : 'mid';
@@ -101,7 +101,7 @@ export function resultReactionLine(turnActor: ActorId, name: YutName, rng: Rng):
   };
 }
 
-// 깍이 훈수(HINT) — 판단 AI가 계산한 최선 수의 유형별 폴백 대사
+// 까비 훈수(HINT) — 판단 AI가 계산한 최선 수의 유형별 폴백 대사
 export type HintKind = 'capture' | 'goal' | 'stack' | 'shortcut' | 'advance';
 
 export const HINT_DESC: Record<HintKind, string> = {

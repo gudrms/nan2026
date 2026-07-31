@@ -38,7 +38,7 @@ export default function ResultScreen({
         <p style={{ margin: 0, fontSize: 16, color: 'var(--text-sub)', lineHeight: 1.6 }}>
           {win
             ? '허풍쟁이 호랑이를 꺾고 병풍 속 최고 명당을 차지했다!'
-            : '범발톱이 포효한다. "어흐하하! 명당은 없던 일이다!" — 이대로 물러날 순 없지.'}
+            : '범이가 포효한다. "어흐하하! 명당은 없던 일이다!" — 이대로 물러날 순 없지.'}
         </p>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(4px, 2vw, 20px)', flexWrap: 'wrap', justifyContent: 'center' }}>
           <Character actor="beomtiger" emotion={win ? 'anger' : 'joy'} width={108} />

@@ -10,10 +10,10 @@ import TeamPanel from '../TeamPanel';
 import YutSticks from '../YutSticks';
 
 const NAME_KO: Record<ActorId, string> = {
-  player: '플레이어',
-  kkaki: '깍이',
-  beomtiger: '범발톱',
-  ninetail: '꼬리아홉',
+  player: '도령',
+  kkaki: '까비',
+  beomtiger: '범이',
+  ninetail: '여울',
 };
 
 // 좌우 팀 배치: 적팀 좌 / 아군 우 (CONCEPT §7.2, 기획 피드백 F-3·4)
