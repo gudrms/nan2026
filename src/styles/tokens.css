@@ -125,6 +125,18 @@ button {
   animation: talk-b 0.34s steps(1, end) infinite;
 }
 
+/* 감정 오버레이 배지 — emotion별 캐릭터 이미지가 나올 때까지의 표현 (ADR-003) */
+.emo-badge {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  font-size: 24px;
+  line-height: 1;
+  animation: pop-in 0.3s ease-out;
+  filter: drop-shadow(0 1px 2px rgba(42, 39, 34, 0.3));
+  pointer-events: none;
+}
+
 /* 이동 가능 위치 하이라이트 펄스 */
 @keyframes node-pulse {
   0%,
