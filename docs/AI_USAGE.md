@@ -17,7 +17,7 @@
 | 항목 | 출처 | 라이선스 |
 |---|---|---|
 | (캐릭터 외 시각 요소 전량 SVG/CSS 코드 생성) | — | — |
-| 캐릭터 이미지 20종 (범이 idle+talk 겸용 GIF, 나머지 3인 idle PNG·talk GIF + 단체 일러스트 + emotion PNG 12종) | 팀 자체 제작 — 기획(황인섭)이 **OpenAI Codex**(이미지 생성)로 제작·전달. emotion 12종은 `group.png`를 스타일 기준으로 joy/anger/surprise 단체 시트를 각각 생성한 뒤 투명 배경·1254×1254 개별 PNG로 분리. 범이는 이후 idle·talk 통합 애니메이션(10프레임 512×512 GIF)으로 재교체 (ADR-003) | 자체 저작물(AI 생성) |
+| 캐릭터 이미지 21종 (4인 idle PNG·talk GIF + 단체 일러스트 + emotion PNG 12종, 범이는 talk GIF를 10프레임 512×512 애니메이션으로 재교체) | 팀 자체 제작 — 기획(황인섭)이 **OpenAI Codex**(이미지 생성)로 제작·전달. emotion 12종은 `group.png`를 스타일 기준으로 joy/anger/surprise 단체 시트를 각각 생성한 뒤 투명 배경·1254×1254 개별 PNG로 분리 (ADR-003) | 자체 저작물(AI 생성) |
 | Pretendard 폰트 (본문·대사) | https://github.com/orioncactus/pretendard | SIL OFL 1.1 |
 | Gugi 폰트 (디스플레이·타이틀) | Google Fonts | SIL OFL 1.1 |
 | *추가 시 여기에 기록* | | |
@@ -220,8 +220,8 @@
 **이름 변경 전수 재검사 (개발자 확인 요청 계기)**
 - "이름까지 다 바뀐 거 맞나" 질문에 grep 전수 조사 → CONCEPT.md(§5·§6.2·§6.3·§7.2·§10)와 spec.md(API 예시·봇 가중치 설명)에 이전 이름 잔존분 발견, 정리. AI_USAGE·checklist는 과거 세션의 사실 기록이므로 의도적으로 미수정(AGENTS.md §5 원칙)임을 구분해 설명
 
-**범이(호랑이) idle+talk GIF 교체**
-- 기획이 전달한 애니메이션 GIF(10프레임, 512×512, 카카오톡 전송분)로 기존 tiger-idle.png+tiger-talk-breathe.gif 2종을 대체. 용도가 불명확해(idle만/talk만/둘 다) 사용자에게 확인 후 "둘 다 교체"로 결정 — 동일 GIF를 idle·talk 양쪽에 재사용해 중복 에셋 없이 구현. emotion 3종(PNG)은 그대로 유지
+**범이(호랑이) idle+talk GIF 교체 → talk 전용으로 재조정**
+- 기획이 전달한 애니메이션 GIF(10프레임, 512×512, 카카오톡 전송분)를 처음엔 idle·talk 양쪽에 재사용 — 배포 직후 "기본 이미지 입이 계속 움직인다"는 피드백으로 문제 발견. 10프레임 전체를 추출해 검사한 결과 입이 벌어짐↔O자 사이만 반복하고 다문 입 정지 프레임이 없음을 확인 → **idle은 기존 tiger-idle.png(정지)로 원복, GIF는 talk 전용**으로 재조정. emotion 3종(PNG)은 변경 없음
 
 **산출물**: Character.tsx(emotion 연동 + 범이 GIF), CONCEPT.md·spec.md·botAI.test.ts(이름 동기화), src/assets/characters/(범이 에셋 교체)
 
