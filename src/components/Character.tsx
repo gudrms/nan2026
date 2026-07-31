@@ -5,8 +5,8 @@ import magpieTalk from '../assets/characters/magpie-talk-breathe.gif';
 import magpieJoy from '../assets/characters/magpie-joy.png';
 import magpieAnger from '../assets/characters/magpie-anger.png';
 import magpieSurprise from '../assets/characters/magpie-surprise.png';
-import tigerIdle from '../assets/characters/tiger-idle.png';
-import tigerTalk from '../assets/characters/tiger-talk-breathe.gif';
+// idle/talk 겸용 GIF (기획이 새로 교체 전달) — 두 상태 모두 이 애니메이션을 재사용한다
+import tigerIdleTalk from '../assets/characters/tiger-idle.gif';
 import tigerJoy from '../assets/characters/tiger-joy.png';
 import tigerAnger from '../assets/characters/tiger-anger.png';
 import tigerSurprise from '../assets/characters/tiger-surprise.png';
@@ -26,7 +26,7 @@ import playerSurprise from '../assets/characters/player-surprise.png';
 
 const ART: Record<ActorId, { idle: string; talk: string; joy: string; anger: string; surprise: string }> = {
   kkaki: { idle: magpieIdle, talk: magpieTalk, joy: magpieJoy, anger: magpieAnger, surprise: magpieSurprise },
-  beomtiger: { idle: tigerIdle, talk: tigerTalk, joy: tigerJoy, anger: tigerAnger, surprise: tigerSurprise },
+  beomtiger: { idle: tigerIdleTalk, talk: tigerIdleTalk, joy: tigerJoy, anger: tigerAnger, surprise: tigerSurprise },
   ninetail: { idle: foxIdle, talk: foxTalk, joy: foxJoy, anger: foxAnger, surprise: foxSurprise },
   player: { idle: playerIdle, talk: playerTalk, joy: playerJoy, anger: playerAnger, surprise: playerSurprise },
 };
