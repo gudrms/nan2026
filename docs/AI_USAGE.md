@@ -16,7 +16,7 @@
 | 항목 | 출처 | 라이선스 |
 |---|---|---|
 | (캐릭터 외 시각 요소 전량 SVG/CSS 코드 생성) | — | — |
-| 캐릭터 이미지 9종 (4인 idle PNG·talk GIF + 단체 일러스트) | 팀 자체 제작 — 기획(황인섭) 제작·전달 (ADR-003). **제작 도구 확인 후 기재 필요** — AI 생성 도구 사용 시 도구명·프롬프트 필수 | 자체 저작물 |
+| 캐릭터 이미지 9종 (4인 idle PNG·talk GIF + 단체 일러스트) | 팀 자체 제작 — 기획(황인섭)이 **OpenAI Codex**(이미지 생성)로 제작·전달 (ADR-003) | 자체 저작물(AI 생성) |
 | Pretendard 폰트 (본문·대사) | https://github.com/orioncactus/pretendard | SIL OFL 1.1 |
 | Gugi 폰트 (디스플레이·타이틀) | Google Fonts | SIL OFL 1.1 |
 | *추가 시 여기에 기록* | | |
