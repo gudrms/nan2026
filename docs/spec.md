@@ -98,13 +98,13 @@ events.detect() ⇒ DialogueEvent { type, actor, 판세요약 }
 {
   "actor": "kkaki" | "beomtiger" | "ninetail",
   "event": "CAPTURE" | "CAPTURED" | "STACK" | "YUT_MO" | "FINISH" | "LEAD_CHANGE" | "GAME_START" | "GAME_END" | "HINT",
-  "situation": "범발톱이 플레이어의 말을 12번 칸에서 잡음. 현재 점수 …", // 판세 요약 문자열
+  "situation": "범이가 도령의 말을 12번 칸에서 잡음. 현재 점수 …", // 판세 요약 문자열
   "history": [                                    // 최근 대사 3~5개 (대화 메모리)
     { "actor": "beomtiger", "text": "어흥! 이 몸을 누가 막느냐!" }
   ]
 }
 // 응답 — Structured Output (JSON 스키마 강제)
-{ "text": "아까 큰소리치더니 잡히셨네요, 범발톱 씨?", "emotion": "joy" }
+{ "text": "아까 큰소리치더니 잡히셨네요, 범이 씨?", "emotion": "joy" }
 // emotion: "neutral" | "joy" | "anger" | "surprise" → SVG 캐릭터 표정과 연동
 ```
 
@@ -145,7 +145,7 @@ function reduce(state: GameState, action: GameAction): GameState  // 순수 함�
   → 기대값 최대 수 선택 (탐색 깊이 1~2수)
 ```
 
-- **캐릭터별 가중치**로 성격을 플레이 스타일에 반영: 범발톱(잡기 가치 ↑, 위험 감수), 꼬리아홉(피격 회피 ↑, 안전 주행), 깍이(균형)
+- **캐릭터별 가중치**로 성격을 플레이 스타일에 반영: 범이(잡기 가치 ↑, 위험 감수), 여울(피격 회피 ↑, 안전 주행), 까비(균형)
 - 개발 순서: M1에서 단순 휴리스틱(잡기>회피>업기>전진) 버전 먼저 → 기대값 탐색 버전으로 교체, **두 버전을 자동 대전시켜 승률로 개선을 정량 검증** (§4.5)
 - LLM은 판단에 관여하지 않음 (지연·실패가 게임을 멈추지 못하게) — ADR-001 D4
 

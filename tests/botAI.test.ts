@@ -96,7 +96,7 @@ describe('chooseMoveExpecti — 기대값 탐색 v2', () => {
     expect(scoreMoveExpecti(risky, riskyMove, p)).toBeLessThan(scoreMoveExpecti(safe, safeMove, p));
   });
 
-  it('성향 가중치: 같은 잡기 수를 범발톱(공격형)이 더 높게 평가한다', () => {
+  it('성향 가중치: 같은 잡기 수를 범이(공격형)가 더 높게 평가한다', () => {
     let state = setup({ 'blue-0': { pos: 2 }, 'orange-0': { pos: 4 } });
     state = reduce(state, { type: 'THROW', yut: yut(2, false) });
     const capture = getMoves(state).find((m) => m.captures.length > 0)!;
