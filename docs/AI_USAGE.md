@@ -245,4 +245,31 @@
 
 ---
 
-*다음: 재배포 후 이번 수정 2건 실배포 환경에서 재확인, 실기기 모바일 확인, M5 배포·제출물*
+### S16. 2026-07-31 — 조사 어법 누락분 추가 수정 (Claude Code)
+
+- 배포판 자동 플레이 중 기획이 "윷다 크하하" 직접 목격·보고 → S15에서 고친 이에요/예요·라니/이라니 외에 **세 번째 조사 패턴**(받침 있는 음절에 "다"만 붙는 경우)을 놓쳤음을 확인. `da()` 헬퍼 추가해 범이 good 등급 대사 2곳 + YUT_MO 상대팀 견제 1곳 수정
+- "가락이 잘못됐군!"이 무엇을 가리키는지 불명확하다는 지적 → "윷가락이 잘못됐군!"으로 명시
+- 회귀 테스트에 다/이다 패턴과 YUT_MO 상대팀(orange) 분기 추가, 배포판에서 "윷이다!!" 렌더링을 자동 플레이 로그로 직접 확인
+
+**산출물**: presetLines.ts(da 헬퍼), tests/presetLines.test.ts(확장)
+
+---
+
+### S17. 2026-07-31 — 전체 코드리뷰·평가관 채점 후 개선사항 반영 (Claude Code)
+
+**AI를 평가관으로 세워 전체 코드베이스 재검토** (3,344줄 전수 확인, 이전에 안 읽었던 board.ts·simulate.ts·Board.tsx·TeamPanel.tsx·YutSticks.tsx·sfx.ts·bgm.ts·health.ts 포함) → 종합 81/100, 신규 발견 6건
+
+**개발자 지시로 즉시 수정한 것** (제출 준비물은 기획 담당이라 범위 제외)
+- 죽은 코드 제거: `api/health.ts`(M3에서 대체 예정이라던 더미, 참조 0건)
+- 죽은 분기 정리: `useGame.ts`의 CAPTURE 무드 계산에서 도달 불가능한 `'surprise'` 중간값 대입 제거
+- 문서 SoT 위반 수정: `spec.md`가 실제 구현(SVG `Board.tsx`, 서버 상수 페르소나)과 다르게 여러 세션째 Canvas/`personas.ts`/`BoardCanvas.tsx`를 서술하던 것을 실제 구조로 동기화
+- 레이트리밋 Map 누수: `api/dialogue.ts`·`api/tts.ts`의 IP별 `RATE` Map이 유휴 키를 영구 보관하던 것을 매 호출 전체 정리로 수정
+- 타입 안전성: 두 API 핸들러의 `req: any, res: any`를 실제 Vercel 런타임 형태를 반영한 최소 로컬 인터페이스로 교체 (`@vercel/node` 의존성 추가 없이)
+
+**보류한 것**: UI/훅 레이어(`useGame.ts` 등) 테스트 커버리지 0%는 `@testing-library/react` 등 신규 의존성과 vitest 환경(jsdom) 변경이 필요해 범위가 다르다고 판단, 임의로 진행하지 않고 사용자 확인 대기
+
+**산출물**: api/health.ts(삭제), useGame.ts·spec.md·api/dialogue.ts·api/tts.ts
+
+---
+
+*다음: 재배포 후 이번 수정 실배포 환경에서 재확인, 실기기 모바일 확인, M5 배포·제출물(기획 담당)*

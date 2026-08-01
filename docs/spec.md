@@ -11,8 +11,8 @@
 |---|---|---|
 | 언어 | **TypeScript** (전 영역 단일 언어) | 5.x |
 | 프론트엔드 | **React** + **Vite** | React 18+, Vite 5+ |
-| 게임판 렌더링 | **Canvas API** (윷판·말·이동 애니메이션) | 브라우저 내장 |
-| 캐릭터/UI 비주얼 | **SVG + CSS 애니메이션** (외부 이미지 에셋 0개) | — |
+| 게임판 렌더링 | **SVG + CSS 애니메이션** (윷판·말·이동, 노드 클릭에 유리 — 보류 결정 D-8로 Canvas에서 전환) | 브라우저 내장 |
+| 캐릭터/UI 비주얼 | **SVG/CSS 도형 + 팀 제작 캐릭터 이미지** (ADR-003, 타인 저작물 에셋 0개) | — |
 | 게임 로직 | 순수 TS 모듈 (프레임워크 무의존) | — |
 | 서버 | **Vercel Serverless Functions** (프록시 2개) | Node 20 런타임 |
 | 외부 AI API | OpenAI — Chat Completions(대사 생성) + TTS(음성) | — |
@@ -51,16 +51,19 @@ nhn/
 │  ├─ ai/                   # 성격 AI 클라이언트 레이어
 │  │  ├─ dialogueClient.ts  #   /api/dialogue 호출 + 프리셋 폴백
 │  │  ├─ ttsClient.ts       #   /api/tts 호출 + 재생 큐 (음소거 토글)
-│  │  └─ personas.ts        #   캐릭터 3인 페르소나 정의 (CONCEPT §4 기준)
+│  │  ├─ presetLines.ts     #   프리셋 대사 풀 (LLM 실패 시 폴백). 페르소나 원본은
+│  │  │                     #   `api/dialogue.ts` 서버 상수(클라이언트 조작 불가, CONCEPT §4 기준)
+│  │  └─ situation.ts       #   게임 상태 → 프롬프트용 판세 요약 문장
 │  ├─ components/           # React UI
 │  │  ├─ screens/           #   Start / Game / Result 3화면
-│  │  ├─ BoardCanvas.tsx    #   Canvas 렌더링 (윷판+말+애니메이션)
-│  │  ├─ Character.tsx      #   SVG 캐릭터 (표정 상태, 입 애니메이션)
+│  │  ├─ Board.tsx          #   SVG 윷판 렌더링(윷판+말+애니메이션) — 보류 결정 D-8
+│  │  ├─ Character.tsx      #   캐릭터 4인 (idle/talk 이미지 + emotion 오버레이, ADR-003)
 │  │  ├─ SpeechBubble.tsx   #   말풍선
-│  │  └─ YutThrow.tsx       #   윷 던지기 버튼·연출
+│  │  └─ YutSticks.tsx      #   윷 던지기 결과 연출
 │  ├─ hooks/                #   useGame (게임 코어 ↔ React 연결점)
-│  └─ assets/               #   SVG 소스, 합성 효과음 정의
-├─ tests/                   # Vitest — game/ 모듈 대상
+│  ├─ assets/characters/    #   팀 제작 캐릭터 이미지 (ADR-003)
+│  └─ audio/                #   Web Audio 합성 효과음·BGM (외부 음원 0개)
+├─ tests/                   # Vitest — game/ + ai/ 폴백 로직 대상
 ├─ index.html
 ├─ vite.config.ts
 └─ vercel.json              # 정적 빌드 + api/ 함수 라우팅
@@ -74,7 +77,7 @@ nhn/
 
 ```
 사용자 클릭 → throwYut() → rules.getMovableMals() → (플레이어: 클릭 선택 | 봇: botAI.choose())
-→ state 전이 → events.detect() 로 대사 이벤트 판정 → BoardCanvas 리렌더
+→ state 전이 → events.detect() 로 대사 이벤트 판정 → Board 리렌더
 ```
 
 게임 진행은 **네트워크와 완전 무관**하게 동작한다. AI 대사는 곁가지(fire-and-forget)다.
@@ -87,7 +90,7 @@ events.detect() ⇒ DialogueEvent { type, actor, 판세요약 }
   → ttsClient:     POST /api/tts      ─(프록시)→ OpenAI TTS → mp3 blob
   → SpeechBubble 표시 + 오디오 재생 + 캐릭터 입 애니메이션 (동시)
 
-실패/타임아웃(3s) 시 → personas.ts 의 프리셋 대사 풀에서 즉시 선택 (음성 없이 말풍선만)
+실패/타임아웃(3s) 시 → presetLines.ts 의 프리셋 대사 풀에서 즉시 선택 (음성 없이 말풍선만)
 ```
 
 ### 3.3 API 계약
@@ -228,7 +231,7 @@ npm run simulate -- --games 1000
 | # | 마일스톤 | 완료 기준 (verify) |
 |---|---|---|
 | M1 | 게임 코어 (`src/game/`) + 테스트 + 시뮬레이션 하네스 | Vitest 전부 통과, 봇 4인 1000판 자동 대전 통계 출력, 기대값 봇 > 휴리스틱 봇 승률 확인 |
-| M2 | 디자인 시안 → React 화면 3종 + Canvas 윷판 | 브라우저에서 플레이어 1인 + 봇 3인 한 판 완주 가능 |
+| M2 | 디자인 시안 → React 화면 3종 + SVG 윷판 | 브라우저에서 플레이어 1인 + 봇 3인 한 판 완주 가능 |
 | M3 | 프록시 + LLM 대사 + TTS + 폴백 | 잡기 이벤트에서 캐릭터가 실시간 대사를 말함 / 키 제거 시 폴백 동작 |
 | M4 | 연출 다듬기 (애니메이션·효과음·모바일) | CONCEPT §10 데모 시나리오가 실제로 촬영 가능 |
 | M5 | 배포 + 제출물 (영상·PDF 3종) | Vercel URL 접속 즉시 플레이 가능, 문서 완비 |
