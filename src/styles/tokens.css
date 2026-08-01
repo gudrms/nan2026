@@ -272,13 +272,17 @@ button {
 .name-pill {
   font-family: var(--font-display);
   font-size: 13.5px;
-  padding: 2px 12px;
+  line-height: 1.5;
+  padding: 3px 12px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 .name-pill.active {
   background: var(--gold);
   border: 2px solid var(--ink);
-  font-weight: 700;
+  /* Gugi는 400 굵기만 제공 — font-weight:700을 걸면 브라우저가 가짜 볼드를 합성해
+     받침 있는 한글 글자가 뭉개져 보인다(잘린 것처럼 보임). 배경·테두리로만 강조한다. */
+  letter-spacing: 0.02em;
 }
 
 /* 현재 턴 캐릭터 바운스 (F-6) */
