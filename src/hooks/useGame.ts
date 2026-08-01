@@ -70,6 +70,9 @@ export function useGame() {
   const [moods, setMoods] = useState<Record<ActorId, Emotion>>(NEUTRAL_MOODS);
   const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [introDone, setIntroDone] = useState(false); // 시작 인사 종료 전에는 던지기 잠금 (I-2)
+  // 턴 오프닝 대사("대장 차례예요!") 낭독 중에는 던지기 잠금 — 안 그러면 플레이어가
+  // 대사 중간에 던져버려 driverBusy가 true인 채로 상태가 바뀌어 드라이버가 다음 턴을 못 잡는다
+  const [turnOpenPending, setTurnOpenPending] = useState(false);
   const [extraTurn, setExtraTurn] = useState(false); // "한 번 더" 표시용 (윷·모·잡기 추가 턴)
   const stateRef = useRef(state);
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
@@ -257,7 +260,9 @@ export function useGame() {
           // 턴 오프닝 — 추가 턴(같은 참가자 한 번 더)에는 생략. 음성 종료까지 대기
           if (openedTurnIdx.current !== s.turnIdx) {
             openedTurnIdx.current = s.turnIdx;
+            setTurnOpenPending(true);
             await deliverLine(turnOpenLine(turnActor, rngRef.current));
+            setTurnOpenPending(false);
             await sleep(150);
           }
           if (turnActor === 'player') break; // 버튼 입력 대기 (안내는 이미 나감)
@@ -275,12 +280,13 @@ export function useGame() {
         }
       } finally {
         driverBusy.current = false;
+        setTurnOpenPending(false); // 안전망 — 예외로 루프가 끊겨도 던지기 잠금이 영구히 남지 않게
       }
     })();
   }, [state, introDone, apply, deliverLine]);
 
   const actor: ActorId = currentActor(state);
-  const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow' && introDone;
+  const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow' && introDone && !turnOpenPending;
   const playerCanMove = actor === 'player' && state.phase === 'awaitingMove';
   const selectableMoves = useMemo<Move[]>(() => (playerCanMove ? getMoves(state) : []), [playerCanMove, state]);
 
