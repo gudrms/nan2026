@@ -27,6 +27,7 @@ function hasBatchim(word: string): boolean {
 }
 const copula = (word: string) => `${word}${hasBatchim(word) ? '이에요' : '예요'}`;
 const rani = (word: string) => `${word}${hasBatchim(word) ? '이라니' : '라니'}`;
+const da = (word: string) => `${word}${hasBatchim(word) ? '이다' : '다'}`;
 
 // 시작 인사 — 템포를 위해 1줄만 (양 팀 대사 풀에서 무작위)
 export function startLines(rng: Rng): DialogueLine[] {
@@ -94,9 +95,9 @@ export function resultReactionLine(turnActor: ActorId, name: YutName, rng: Rng):
       bad: [`${ko}… 으, 아쉽다!`, `${ko}네요. 다음에 만회해요!`],
     },
     beomtiger: {
-      good: [`${ko}다!! 크하하!`, `봤느냐! ${ko}다!`],
+      good: [`${da(ko)}!! 크하하!`, `봤느냐! ${da(ko)}!`],
       mid: [`${ko}인가. 뭐, 나쁘지 않군.`, `${ko}! 이 정도면 충분하지.`],
-      bad: [`${rani(ko)}… 큼, 큼.`, `${ko}?! 가락이 잘못됐군!`],
+      bad: [`${rani(ko)}… 큼, 큼.`, `${ko}?! 윷가락이 잘못됐군!`],
     },
     ninetail: {
       good: [`어머, ${ko}네요. 후후.`, `${ko}. 계산대로예요.`],
@@ -149,7 +150,7 @@ export function linesForEvent(ev: GameEvent, rng: Rng): DialogueLine[] {
       }
       return [
         pick(rng, [
-          { actor: ev.actor, text: `${name}다! 어흥, 막을 수 있겠느냐!`, emotion: 'joy' },
+          { actor: ev.actor, text: `${da(name)}! 어흥, 막을 수 있겠느냐!`, emotion: 'joy' },
           { actor: ev.actor, text: `${name}! 후후, 계산대로예요.`, emotion: 'joy' },
         ] as DialogueLine[]),
       ];
