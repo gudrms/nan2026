@@ -18,6 +18,16 @@ const pick = <T,>(rng: Rng, arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 
 const YUT_KO: Record<YutName, string> = { do: '도', gae: '개', geol: '걸', yut: '윷', mo: '모' };
 
+// 마지막 음절 받침(종성) 유무 — 조사 선택(이에요/예요, 이라니/라니)에 사용.
+// "도·개·모"는 받침 없음, "걸·윷"은 받침 있음 → 하드코딩 시 어색해지므로 유니코드로 판정.
+function hasBatchim(word: string): boolean {
+  const code = word.charCodeAt(word.length - 1) - 0xac00;
+  if (code < 0 || code > 11171) return false;
+  return code % 28 !== 0;
+}
+const copula = (word: string) => `${word}${hasBatchim(word) ? '이에요' : '예요'}`;
+const rani = (word: string) => `${word}${hasBatchim(word) ? '이라니' : '라니'}`;
+
 // 시작 인사 — 템포를 위해 1줄만 (양 팀 대사 풀에서 무작위)
 export function startLines(rng: Rng): DialogueLine[] {
   return [
@@ -80,18 +90,18 @@ export function resultReactionLine(turnActor: ActorId, name: YutName, rng: Rng):
   const pools: Record<string, Record<string, string[]>> = {
     kkaki: {
       good: [`${ko}!! 깍깍, 대박이에요!`, `${ko} 나왔어요! 한 번 더!`],
-      mid: [`${ko}! 쏠쏠한데요?`, `${ko}이에요. 나쁘지 않아요!`],
+      mid: [`${ko}! 쏠쏠한데요?`, `${copula(ko)}. 나쁘지 않아요!`],
       bad: [`${ko}… 으, 아쉽다!`, `${ko}네요. 다음에 만회해요!`],
     },
     beomtiger: {
       good: [`${ko}다!! 크하하!`, `봤느냐! ${ko}다!`],
       mid: [`${ko}인가. 뭐, 나쁘지 않군.`, `${ko}! 이 정도면 충분하지.`],
-      bad: [`${ko}라니… 큼, 큼.`, `${ko}?! 가락이 잘못됐군!`],
+      bad: [`${rani(ko)}… 큼, 큼.`, `${ko}?! 가락이 잘못됐군!`],
     },
     ninetail: {
       good: [`어머, ${ko}네요. 후후.`, `${ko}. 계산대로예요.`],
       mid: [`${ko}. 예상 범위 안이죠.`, `${ko}이면 충분해요.`],
-      bad: [`…${ko}. 못 본 걸로 하죠.`, `${ko}이라니, 어머.`],
+      bad: [`…${ko}. 못 본 걸로 하죠.`, `${rani(ko)}, 어머.`],
     },
   };
   return {
@@ -130,7 +140,7 @@ export function linesForEvent(ev: GameEvent, rng: Rng): DialogueLine[] {
       const name = YUT_KO[ev.detail?.yutName ?? 'yut'];
       if (ev.team === 'blue') {
         const cheer = pick(rng, [
-          { actor: 'kkaki', text: `${name}! ${name}이에요! 한 번 더 던져요!`, emotion: 'joy' },
+          { actor: 'kkaki', text: `${name}! ${copula(name)}! 한 번 더 던져요!`, emotion: 'joy' },
           { actor: 'kkaki', text: `깍깍! ${name} 나왔어요! 기세 탔다!`, emotion: 'joy' },
         ] as DialogueLine[]);
         return rng() < 0.35
