@@ -4,6 +4,17 @@
 declare const process: { env: Record<string, string | undefined> };
 declare const Buffer: { from(a: ArrayBuffer): unknown };
 
+// @vercel/node 의존성 없이 실제 런타임 형태만 최소로 선언 (req.body는 검증 전 원시 JSON이라 any 유지)
+interface VercelRequest {
+  method?: string;
+  headers: Record<string, string | string[] | undefined>;
+  body?: any;
+}
+interface VercelResponse {
+  setHeader(name: string, value: string): void;
+  status(code: number): { json(body: unknown): void; send(body: unknown): void };
+}
+
 const VOICES: Record<string, { voice: string; instructions: string }> = {
   kkaki: { voice: 'nova', instructions: '높고 경쾌한 톤. 빠르고 밝게, 새처럼 통통 튀는 느낌으로.' },
   beomtiger: { voice: 'onyx', instructions: '낮고 굵은 톤. 허세 가득한 호랑이처럼 호탕하고 크게.' },
@@ -13,7 +24,13 @@ const VOICES: Record<string, { voice: string; instructions: string }> = {
 const RATE = new Map<string, number[]>();
 function rateLimited(ip: string): boolean {
   const now = Date.now();
-  const hits = (RATE.get(ip) ?? []).filter((t) => now - t < 60_000);
+  // 매 호출마다 전체 맵을 정리 — 유휴 IP 키가 인스턴스 수명 동안 무한정 쌓이지 않게
+  for (const [key, hits] of RATE) {
+    const kept = hits.filter((t) => now - t < 60_000);
+    if (kept.length === 0) RATE.delete(key);
+    else RATE.set(key, kept);
+  }
+  const hits = RATE.get(ip) ?? [];
   if (hits.length >= 30) return true;
   hits.push(now);
   RATE.set(ip, hits);
@@ -32,7 +49,7 @@ function globalLimited(): boolean {
 
 // 게임 페이지에서 온 요청만 허용 — 외부 스크립트의 프록시 남용 차단.
 // 브라우저는 POST에 항상 Origin을 실어 보내므로, 없거나 호스트 불일치면 거부.
-function badOrigin(req: any): boolean {
+function badOrigin(req: VercelRequest): boolean {
   try {
     return new URL(String(req.headers.origin ?? '')).host !== String(req.headers.host ?? '');
   } catch {
@@ -40,7 +57,7 @@ function badOrigin(req: any): boolean {
   }
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
   if (badOrigin(req)) return res.status(403).json({ error: 'forbidden' });
   const key = process.env.OPENAI_API_KEY;

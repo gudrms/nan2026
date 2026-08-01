@@ -4,6 +4,16 @@
 
 declare const process: { env: Record<string, string | undefined> };
 
+// @vercel/node 의존성 없이 실제 런타임 형태만 최소로 선언 (req.body는 검증 전 원시 JSON이라 any 유지)
+interface VercelRequest {
+  method?: string;
+  headers: Record<string, string | string[] | undefined>;
+  body?: any;
+}
+interface VercelResponse {
+  status(code: number): { json(body: unknown): void };
+}
+
 const COMMON = `한국 민화 병풍에서 튀어나온 동물들이 설날 마당에서 플레이어와 2:2 윷놀이 대결 중이다.
 플레이어(사람, '도령')+까치 '까비' 팀 vs 호랑이 '범이'+여우 '여울' 팀.
 
@@ -32,7 +42,13 @@ const EMOTIONS = ['neutral', 'joy', 'anger', 'surprise'];
 const RATE = new Map<string, number[]>();
 function rateLimited(ip: string): boolean {
   const now = Date.now();
-  const hits = (RATE.get(ip) ?? []).filter((t) => now - t < 60_000);
+  // 매 호출마다 전체 맵을 정리 — 유휴 IP 키가 인스턴스 수명 동안 무한정 쌓이지 않게
+  for (const [key, hits] of RATE) {
+    const kept = hits.filter((t) => now - t < 60_000);
+    if (kept.length === 0) RATE.delete(key);
+    else RATE.set(key, kept);
+  }
+  const hits = RATE.get(ip) ?? [];
   if (hits.length >= 30) return true;
   hits.push(now);
   RATE.set(ip, hits);
@@ -51,7 +67,7 @@ function globalLimited(): boolean {
 
 // 게임 페이지에서 온 요청만 허용 — 외부 스크립트의 프록시 남용 차단.
 // 브라우저는 POST에 항상 Origin을 실어 보내므로, 없거나 호스트 불일치면 거부.
-function badOrigin(req: any): boolean {
+function badOrigin(req: VercelRequest): boolean {
   try {
     return new URL(String(req.headers.origin ?? '')).host !== String(req.headers.host ?? '');
   } catch {
@@ -63,7 +79,7 @@ function badOrigin(req: any): boolean {
 const KNOWN_ACTORS = new Set(['player', 'kkaki', 'beomtiger', 'ninetail']);
 const sanitize = (s: unknown, max: number) => String(s ?? '').replace(/\s+/g, ' ').slice(0, max);
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
   if (badOrigin(req)) return res.status(403).json({ error: 'forbidden' });
   const key = process.env.OPENAI_API_KEY;

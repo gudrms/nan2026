@@ -196,8 +196,7 @@ export function useGame() {
           orangeMood = ev.detail?.winner === 'orange' ? 'joy' : 'anger';
         } else if (ev.type === 'CAPTURE') {
           blueMood = ev.team === 'blue' ? 'joy' : 'anger';
-          orangeMood = ev.team === 'orange' ? 'joy' : 'surprise';
-          if (ev.team === 'blue') orangeMood = 'anger';
+          orangeMood = ev.team === 'orange' ? 'joy' : 'anger';
         } else if (ev.type === 'YUT_MO') {
           if (ev.team === 'blue') blueMood = 'joy';
           else orangeMood = 'joy';
