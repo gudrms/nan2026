@@ -22,22 +22,27 @@ export async function requestLine(req: DialogueRequest, fallback: DialogueLine):
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    const res = await fetch('/api/dialogue', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(req),
-      signal: ctrl.signal,
-    });
-    clearTimeout(timer);
-    if (!res.ok) throw new Error(String(res.status));
-    const data: unknown = await res.json();
-    const { text, emotion } = (data ?? {}) as { text?: unknown; emotion?: unknown };
-    if (typeof text !== 'string' || text.length === 0) throw new Error('empty text');
-    return {
-      actor: fallback.actor,
-      text: text.slice(0, 80),
-      emotion: EMOTIONS.has(emotion as Emotion) ? (emotion as Emotion) : fallback.emotion,
-    };
+    try {
+      const res = await fetch('/api/dialogue', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(req),
+        signal: ctrl.signal,
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      // 헤더 수신 후에도 본문 스트리밍이 멈출 수 있다 — 타이머는 본문을 다 읽을 때까지 유지해
+      // res.json()도 타임아웃(abort) 보호를 받게 한다. 여기서 끊기면 게임 전체가 멎는다.
+      const data: unknown = await res.json();
+      const { text, emotion } = (data ?? {}) as { text?: unknown; emotion?: unknown };
+      if (typeof text !== 'string' || text.length === 0) throw new Error('empty text');
+      return {
+        actor: fallback.actor,
+        text: text.slice(0, 80),
+        emotion: EMOTIONS.has(emotion as Emotion) ? (emotion as Emotion) : fallback.emotion,
+      };
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     return fallback;
   }

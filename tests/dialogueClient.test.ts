@@ -46,4 +46,28 @@ describe('dialogueClient — 폴백 경로 (게임 논블로킹 보장)', () => 
     const line = await requestLine(REQ, FALLBACK);
     expect(line.emotion).toBe('joy');
   });
+
+  it('헤더는 받았지만 본문 스트리밍이 멈춰도 타임아웃 후 폴백한다 (턴 드라이버 영구 정지 방지)', async () => {
+    vi.useFakeTimers();
+    let capturedSignal: AbortSignal | undefined;
+    const hangingRes = {
+      ok: true,
+      // 실제 fetch에서 헤더 수신 후 본문 스트림이 멈추는 상황 재현: json()이 abort 전까지 절대 안 끝남
+      json: () =>
+        new Promise((_resolve, reject) => {
+          capturedSignal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+        }),
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, opts?: RequestInit) => {
+        capturedSignal = opts?.signal ?? undefined;
+        return Promise.resolve(hangingRes as unknown as Response);
+      }),
+    );
+    const promise = requestLine(REQ, FALLBACK);
+    await vi.advanceTimersByTimeAsync(3100); // TIMEOUT_MS(3000) 경과
+    await expect(promise).resolves.toEqual(FALLBACK);
+    vi.useRealTimers();
+  });
 });

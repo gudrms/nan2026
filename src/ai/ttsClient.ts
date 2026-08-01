@@ -81,16 +81,21 @@ export async function speak(
     if (!blob) {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
-      const res = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ actor, text }),
-        signal: ctrl.signal,
-      });
-      clearTimeout(timer);
-      if (!res.ok || !res.headers.get('content-type')?.includes('audio')) return;
-      blob = await res.blob();
-      blobCache.set(cacheKey, blob);
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ actor, text }),
+          signal: ctrl.signal,
+        });
+        if (!res.ok || !res.headers.get('content-type')?.includes('audio')) return;
+        // 헤더 수신 후에도 본문(오디오) 스트리밍이 멈출 수 있다 — 타이머는 본문을 다 읽을 때까지
+        // 유지해 res.blob()도 타임아웃 보호를 받게 한다 (안 그러면 턴 드라이버가 영구히 멎는다).
+        blob = await res.blob();
+        blobCache.set(cacheKey, blob);
+      } finally {
+        clearTimeout(timer);
+      }
     }
     return new Promise<void>((resolve) => {
       queue.push({ blob: blob as Blob, resolve, onStart });
