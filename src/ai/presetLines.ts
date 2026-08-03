@@ -18,16 +18,22 @@ const pick = <T,>(rng: Rng, arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 
 const YUT_KO: Record<YutName, string> = { do: '도', gae: '개', geol: '걸', yut: '윷', mo: '모' };
 
-// 마지막 음절 받침(종성) 유무 — 조사 선택(이에요/예요, 이라니/라니)에 사용.
-// "도·개·모"는 받침 없음, "걸·윷"은 받침 있음 → 하드코딩 시 어색해지므로 유니코드로 판정.
+// 마지막 음절 받침(종성) 유무 — 도개걸윷모에 붙는 조사 선택에 사용.
+// "도·개·모"는 받침 없음, "걸·윷"은 받침 있음 → 하드코딩하면 "개이에요"·"윷다"처럼 어색해진다.
 function hasBatchim(word: string): boolean {
   const code = word.charCodeAt(word.length - 1) - 0xac00;
   if (code < 0 || code > 11171) return false;
   return code % 28 !== 0;
 }
-const copula = (word: string) => `${word}${hasBatchim(word) ? '이에요' : '예요'}`;
-const rani = (word: string) => `${word}${hasBatchim(word) ? '이라니' : '라니'}`;
-const da = (word: string) => `${word}${hasBatchim(word) ? '이다' : '다'}`;
+/** 받침 유무로 조사 형태를 고른다. 새 조사가 필요하면 여기에 한 줄 추가한다 */
+const josa = (word: string, withBatchim: string, without: string) =>
+  `${word}${hasBatchim(word) ? withBatchim : without}`;
+
+const copula = (w: string) => josa(w, '이에요', '예요');
+const rani = (w: string) => josa(w, '이라니', '라니');
+const da = (w: string) => josa(w, '이다', '다');
+const ineyo = (w: string) => josa(w, '이네요', '네요');
+const imyeon = (w: string) => josa(w, '이면', '면');
 
 // 시작 인사 — 템포를 위해 1줄만 (양 팀 대사 풀에서 무작위)
 export function startLines(rng: Rng): DialogueLine[] {
@@ -92,7 +98,7 @@ export function resultReactionLine(turnActor: ActorId, name: YutName, rng: Rng):
     kkaki: {
       good: [`${ko}!! 깍깍, 대박이에요!`, `${ko} 나왔어요! 한 번 더!`],
       mid: [`${ko}! 쏠쏠한데요?`, `${copula(ko)}. 나쁘지 않아요!`],
-      bad: [`${ko}… 으, 아쉽다!`, `${ko}네요. 다음에 만회해요!`],
+      bad: [`${ko}… 으, 아쉽다!`, `${ineyo(ko)}. 다음에 만회해요!`],
     },
     beomtiger: {
       good: [`${da(ko)}!! 크하하!`, `봤느냐! ${da(ko)}!`],
@@ -100,8 +106,8 @@ export function resultReactionLine(turnActor: ActorId, name: YutName, rng: Rng):
       bad: [`${rani(ko)}… 큼, 큼.`, `${ko}?! 윷가락이 잘못됐군!`],
     },
     ninetail: {
-      good: [`어머, ${ko}네요. 후후.`, `${ko}. 계산대로예요.`],
-      mid: [`${ko}. 예상 범위 안이죠.`, `${ko}이면 충분해요.`],
+      good: [`어머, ${ineyo(ko)}. 후후.`, `${ko}. 계산대로예요.`],
+      mid: [`${ko}. 예상 범위 안이죠.`, `${imyeon(ko)} 충분해요.`],
       bad: [`…${ko}. 못 본 걸로 하죠.`, `${rani(ko)}, 어머.`],
     },
   };
