@@ -1,4 +1,4 @@
-# 기술 명세 (Tech Spec) — 윷놀이: 까치호랑이 한판 (가제)
+# 기술 명세 (Tech Spec) — 윷놀이 : 까치호랑이
 
 - **작성일**: 2026-07-24
 - **연관 문서**: [CONCEPT.md](./CONCEPT.md) (게임 컨셉) · [ADR.md](./ADR.md) (결정 기록) · [Requirements.md](./Requirements.md) (과제 요구사항)
