@@ -21,7 +21,7 @@ const LEFT_SIDE: ActorId[] = ['beomtiger', 'ninetail'];
 const RIGHT_SIDE: ActorId[] = ['kkaki', 'player'];
 // 결과 화면 전환은 마무리 대사가 끝나기를 기다린다 — 고정 지연이면 승리 타이틀 위로
 // 대사가 흐르는 도중에 화면이 넘어가 마무리가 잘린다 (LLM+TTS라 길이가 매번 다르다)
-const RESULT_AFTER_SPEECH_MS = 1200; // 대사 종료 후 여운
+const RESULT_AFTER_SPEECH_MS = 400; // 대사 종료 후 여운 (useGame의 BUBBLE_AFTER_VOICE_MS 600ms와 합쳐 총 ~1초)
 const RESULT_MAX_MS = 12000; // 대사가 늦어져도 이 이상은 붙잡지 않는다
 const TOSS_MS = 700; // 가락 토스 연출 시간 — 이후 결과 공개 (F-5)
 
