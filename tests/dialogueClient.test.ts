@@ -25,6 +25,13 @@ describe('dialogueClient — 폴백 경로 (게임 논블로킹 보장)', () => 
     expect(await requestLine(REQ, FALLBACK)).toEqual(FALLBACK);
   });
 
+  // 서버(api/dialogue.ts)가 검증을 이미 걸러도, 응답 스키마가 바뀌는 등의 상황에 대비한
+  // 클라이언트 쪽 이중 방어 — 실사용 보고: 감탄사가 어미에 융합돼 의미불명 대사가 노출됨
+  it('문장부호로 끝나지 않는 등 형식이 깨진 응답에도 폴백을 반환한다', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ text: '그런거였구깍' }), { status: 200 })));
+    expect(await requestLine(REQ, FALLBACK)).toEqual(FALLBACK);
+  });
+
   it('정상 응답이면 LLM 대사를 사용한다 (emotion 검증 포함)', async () => {
     vi.stubGlobal(
       'fetch',
@@ -36,14 +43,15 @@ describe('dialogueClient — 폴백 경로 (게임 논블로킹 보장)', () => 
     expect(line).toEqual({ actor: 'kkaki', text: '어흥! 접수한다!', emotion: 'joy' });
   });
 
-  it('알 수 없는 emotion 값은 폴백 emotion으로 보정한다', async () => {
+  it('알 수 없는 emotion 값은 폴백 emotion으로 보정한다 (텍스트는 LLM 응답 유지)', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ text: '대사', emotion: 'rage!!' }), { status: 200 }),
+        new Response(JSON.stringify({ text: '대사!', emotion: 'rage!!' }), { status: 200 }),
       ),
     );
     const line = await requestLine(REQ, FALLBACK);
+    expect(line.text).toBe('대사!');
     expect(line.emotion).toBe('joy');
   });
 

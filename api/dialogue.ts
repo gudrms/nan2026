@@ -2,6 +2,8 @@
 // 페르소나 시스템 프롬프트는 서버 상수로만 보관: 클라이언트에서 프롬프트 조작 불가.
 // 실패·지연 시 클라이언트가 프리셋 대사로 폴백하므로 이 함수는 절대 게임을 블로킹하지 않는다.
 
+import { isWellFormedLine } from '../src/ai/dialogueValidate';
+
 declare const process: { env: Record<string, string | undefined> };
 
 // @vercel/node 의존성 없이 실제 런타임 형태만 최소로 선언 (req.body는 검증 전 원시 JSON이라 any 유지)
@@ -23,7 +25,10 @@ const COMMON = `한국 민화 병풍에서 튀어나온 동물들이 설날 마�
 - 상황 요약은 "방금 이미 일어난 일"이다. 그 결과에 반응하라 (일어날 일을 막으려는 말투 금지).
 - 판세의 진행도 숫자를 그대로 읽지 마라. 유리하다/앞선다/뒤졌다 같은 말로만 표현.
 - emotion은 대사의 감정과 일치시켜라: 우리 팀에 좋은 일=joy, 당했을 때=anger, 뜻밖의 전개=surprise.
-- 직전 대사가 주어지면 그 말을 받아치듯 이어간다(티키타카).`;
+- 직전 대사가 주어지면 그 말을 받아치듯 이어간다(티키타카).
+- 대사는 반드시 !, ., ?, … 중 하나로 끝난다.
+- 페르소나의 감탄사("깍깍!"·"어흥!"·"후후")는 항상 독립된 감탄사로만 써라. 다른 낱말의 어미나
+  조사에 음절을 붙이지 마라 (예: "…구깍?"·"…이어흥!"처럼 다른 말에 섞는 것 금지).`;
 
 const PERSONAS: Record<string, string> = {
   kkaki: `너는 까치 '까비'. 플레이어의 아군 조언자이자 응원단장. 영리하고 싹싹하다.
@@ -105,7 +110,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         max_tokens: 120,
-        temperature: 1.0,
+        // 1.0(기본값)은 소형 모델에서 어미가 뭉개지는 빈도를 눈에 띄게 높인다 — 실사용 보고:
+        // 감탄사가 어미에 융합돼 "주깍?"처럼 의미불명 대사가 나옴. 0.8로 낮춰 안정성 확보.
+        temperature: 0.8,
         messages: [
           { role: 'system', content: `${COMMON}\n\n${PERSONAS[actor]}` },
           {
@@ -137,8 +144,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const data = await r.json();
     const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? '{}');
     if (typeof parsed.text !== 'string' || !parsed.text) return res.status(502).json({ error: 'empty' });
+    // 프롬프트 지시를 어긴 출력(어미 융합·문장부호 누락·이모지 등)은 클라이언트가 프리셋으로
+    // 폴백하도록 실패 취급한다 — 200으로 그대로 흘려보내면 게임 화면에 그대로 노출된다.
+    // 자르기 전 원문을 검증해야 한다 — 먼저 자르면 정상 문장의 끝맺음 문장부호가
+    // 잘려나가 멀쩡한 응답을 형식 오류로 오판할 수 있다
+    if (!isWellFormedLine(parsed.text)) return res.status(502).json({ error: 'malformed' });
+    const text = parsed.text.slice(0, 80);
     return res.status(200).json({
-      text: parsed.text.slice(0, 80),
+      text,
       emotion: EMOTIONS.includes(parsed.emotion) ? parsed.emotion : 'neutral',
     });
   } catch {

@@ -1,3 +1,4 @@
+import { isWellFormedLine } from './dialogueValidate';
 import type { DialogueLine, Emotion } from './presetLines';
 
 // /api/dialogue 호출 + 프리셋 폴백 (spec §3.2).
@@ -34,7 +35,8 @@ export async function requestLine(req: DialogueRequest, fallback: DialogueLine):
       // res.json()도 타임아웃(abort) 보호를 받게 한다. 여기서 끊기면 게임 전체가 멎는다.
       const data: unknown = await res.json();
       const { text, emotion } = (data ?? {}) as { text?: unknown; emotion?: unknown };
-      if (typeof text !== 'string' || text.length === 0) throw new Error('empty text');
+      // 서버가 검증을 걸러도(방어 이중화) — 응답 스키마가 바뀌거나 서버 검증이 우회되는 경우 대비
+      if (typeof text !== 'string' || !isWellFormedLine(text)) throw new Error('malformed text');
       return {
         actor: fallback.actor,
         text: text.slice(0, 80),
