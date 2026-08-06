@@ -22,15 +22,22 @@ let muted = false;
 let playing = false;
 const queue: QueueItem[] = [];
 let current: { audio: HTMLAudioElement; finish: () => void } | null = null;
+// 중단 세대 — stopSpeech() 시점에 이미 /api/tts 응답을 기다리던 speak()가
+// 나중에 큐에 끼어들어 재생되는 것을 막는다 (화면이 넘어간 뒤 음성이 되살아남)
+let epoch = 0;
+
+/** 재생 중·대기 중인 음성을 전부 중단한다 (음소거, 게임 화면 이탈 등) */
+export function stopSpeech() {
+  epoch++;
+  for (const item of queue) item.resolve();
+  queue.length = 0;
+  current?.audio.pause();
+  current?.finish();
+}
 
 export function setMuted(value: boolean) {
   muted = value;
-  if (muted) {
-    for (const item of queue) item.resolve();
-    queue.length = 0;
-    current?.audio.pause();
-    current?.finish();
-  }
+  if (muted) stopSpeech();
 }
 
 export function isMuted() {
@@ -75,6 +82,7 @@ export async function speak(
   onStart?: (durationSec: number | null) => void,
 ): Promise<void> {
   if (muted || DEV_PRESET_MODE) return;
+  const myEpoch = epoch;
   try {
     const cacheKey = `${actor}|${text}`;
     let blob = blobCache.get(cacheKey);
@@ -98,6 +106,8 @@ export async function speak(
       }
     }
     return new Promise<void>((resolve) => {
+      // 합성을 기다리는 동안 중단됐다면 재생하지 않는다
+      if (epoch !== myEpoch) return resolve();
       queue.push({ blob: blob as Blob, resolve, onStart });
       while (queue.length > MAX_QUEUE) queue.shift()?.resolve(); // 오래된 것 드롭
       playNext();

@@ -26,7 +26,7 @@ import {
 } from '../ai/presetLines';
 import { requestLine } from '../ai/dialogueClient';
 import { describeSituation } from '../ai/situation';
-import { isMuted, setMuted, speak } from '../ai/ttsClient';
+import { isMuted, setMuted, speak, stopSpeech } from '../ai/ttsClient';
 import { sfxFinish, sfxThrow } from '../audio/sfx';
 
 // 게임 코어 ↔ React 연결점. 봇 3인 턴 자동 진행 + 대사 파이프라인:
@@ -81,6 +81,16 @@ export function useGame() {
   // 발화 체인 (J-1 엄격 동기): 모든 대사(LLM 응답 대기 포함)를 이어붙이고,
   // 턴 드라이버는 체인이 완전히 빌 때까지 기다린 뒤 다음 액션을 진행한다
   const speechTail = useRef<Promise<void>>(Promise.resolve());
+  // 발화 체인과 TTS 큐는 이 훅의 수명과 무관하게 살아 있다 — 정리하지 않으면 승리 후
+  // 결과 화면으로 넘어간 뒤에도 남은 대사의 음성이 계속 재생된다
+  const disposed = useRef(false);
+  useEffect(() => {
+    disposed.current = false; // StrictMode의 마운트-언마운트-재마운트에서 되살린다
+    return () => {
+      disposed.current = true;
+      stopSpeech();
+    };
+  }, []);
   const trackSpeech = useCallback((p: Promise<void>) => {
     speechTail.current = speechTail.current.then(() => p).catch(() => {});
   }, []);
@@ -110,6 +120,7 @@ export function useGame() {
    */
   const deliverLine = useCallback(
     (line: DialogueLine) => {
+      if (disposed.current) return Promise.resolve();
       historyRef.current.push({ actor: line.actor, text: line.text });
       if (historyRef.current.length > HISTORY_MAX) historyRef.current.shift();
 
@@ -154,6 +165,7 @@ export function useGame() {
         trackSpeech(
           (async () => {
             await new Promise((r) => setTimeout(r, i * LINE_STAGGER_MS));
+            if (disposed.current) return; // 화면을 떠난 뒤 LLM 요청까지 새로 내보내지 않는다
             const line = await requestLine(
               { actor: fallback.actor, event: ev.type, situation, history: historyRef.current.slice(-5) },
               fallback,
