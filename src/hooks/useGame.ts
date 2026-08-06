@@ -263,18 +263,28 @@ export function useGame() {
 
   // 게임 시작 인사 — 순차 발화, 끝나면 던지기 개방 (I-2)
   useEffect(() => {
+    // StrictMode 이중 마운트 대비: disposed 플래그는 마운트-언마운트-재마운트가
+    // 같은 틱에서 동기적으로 정리돼 false로 되돌아오므로, 유령 인스턴스를 못 막는다
+    // (await 재개 시점엔 이미 false). 이 이펙트 실행마다 독립된 cancelled로 잠근다 —
+    // 안 그러면 dev에서 시작 인사가 두 번 겹쳐 나온다.
+    let cancelled = false;
     const ev: GameEvent = { type: 'GAME_START', actor: 'beomtiger', team: 'orange' };
     const situation = describeSituation(ev, stateRef.current);
     void (async () => {
       for (const fb of startLines(rngRef.current)) {
+        if (cancelled) return;
         const line = await requestLine(
           { actor: fb.actor, event: 'GAME_START', situation, history: [] },
           fb,
         );
+        if (cancelled) return;
         await deliverLine(line);
       }
-      setIntroDone(true);
+      if (!cancelled) setIntroDone(true);
     })();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
