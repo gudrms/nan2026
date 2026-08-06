@@ -151,7 +151,12 @@ export function useGame() {
       }).then(() => {
         clearTimeout(safety);
         show(defaultMs); // 음성이 없었던 경우 — 즉시 표시
-        const remain = Math.max(BUBBLE_MIN_MS - (Date.now() - shownAt), BUBBLE_AFTER_VOICE_MS);
+        // 결과 화면 전환(waitForDisplay)은 대사가 끝난 직후 넘어가야 하므로 최소 노출 강제
+        // (BUBBLE_MIN_MS)를 적용하지 않고 짧은 여운만 둔다. 평소 턴 진행 중 대사는 화면에
+        // 충분히 오래 보이도록 최소 노출 시간을 보장한다.
+        const remain = opts?.waitForDisplay
+          ? BUBBLE_AFTER_VOICE_MS
+          : Math.max(BUBBLE_MIN_MS - (Date.now() - shownAt), BUBBLE_AFTER_VOICE_MS);
         // 평소 턴 진행은 음성 종료 즉시 다음으로 넘어가야 템포가 유지되어 remain을 기다리지
         // 않는다. 다만 결과 화면 전환처럼 "말풍선이 실제로 사라질 때까지"가 진짜 기준인
         // 호출은 opts로 명시해 기다리게 한다 — 안 그러면 음성이 짧거나 실패했을 때
