@@ -140,6 +140,11 @@ export function hintFallback(kind: HintKind, rng: Rng): DialogueLine {
   return { actor: 'kkaki', text: pick(rng, pools[kind]), emotion: 'joy' };
 }
 
+// 상대팀 이벤트의 행동 주체는 범이·여울 둘 중 하나다. 말투가 정반대라 하나의 풀을
+// ev.actor에 붙이면 여울이 "어흥!", 범이가 "어머,"라고 말한다 → 화자별로 풀을 나눈다.
+type OrangeActor = 'beomtiger' | 'ninetail';
+const orangeSpeaker = (actor: ActorId): OrangeActor => (actor === 'ninetail' ? 'ninetail' : 'beomtiger');
+
 /** 이벤트 → 프리셋 대사 (한 이벤트당 최대 2줄 — CONCEPT §6.2) */
 export function linesForEvent(ev: GameEvent, rng: Rng): DialogueLine[] {
   switch (ev.type) {
@@ -154,12 +159,17 @@ export function linesForEvent(ev: GameEvent, rng: Rng): DialogueLine[] {
           ? [cheer, { actor: 'ninetail', text: '어머, 운이 좋으시네요. 아직은요.', emotion: 'neutral' }]
           : [cheer];
       }
-      return [
-        pick(rng, [
-          { actor: ev.actor, text: `${da(name)}! 어흥, 막을 수 있겠느냐!`, emotion: 'joy' },
-          { actor: ev.actor, text: `${name}! 후후, 계산대로예요.`, emotion: 'joy' },
-        ] as DialogueLine[]),
-      ];
+      const pools: Record<OrangeActor, DialogueLine[]> = {
+        beomtiger: [
+          { actor: 'beomtiger', text: `${da(name)}! 어흥, 막을 수 있겠느냐!`, emotion: 'joy' },
+          { actor: 'beomtiger', text: `${da(name)}! 이 몸이 또 던진다!`, emotion: 'joy' },
+        ],
+        ninetail: [
+          { actor: 'ninetail', text: `${name}! 후후, 계산대로예요.`, emotion: 'joy' },
+          { actor: 'ninetail', text: `어머, ${ineyo(name)}. 한 번 더 던지죠.`, emotion: 'joy' },
+        ],
+      };
+      return [pick(rng, pools[orangeSpeaker(ev.actor)])];
     }
     case 'CAPTURE': {
       if (ev.team === 'blue') {
@@ -174,11 +184,18 @@ export function linesForEvent(ev: GameEvent, rng: Rng): DialogueLine[] {
           ] as DialogueLine[]),
         ];
       }
+      const pools: Record<OrangeActor, DialogueLine[]> = {
+        beomtiger: [
+          { actor: 'beomtiger', text: '어흥! 그 말은 이 몸이 접수한다!', emotion: 'joy' },
+          { actor: 'beomtiger', text: '크하하! 출발점으로 돌아가거라!', emotion: 'joy' },
+        ],
+        ninetail: [
+          { actor: 'ninetail', text: '어머, 잡아먹는다고 말씀드렸잖아요?', emotion: 'joy' },
+          { actor: 'ninetail', text: '후후, 거기 서시면 잡힌다니까요.', emotion: 'joy' },
+        ],
+      };
       return [
-        pick(rng, [
-          { actor: ev.actor, text: '어흥! 그 말은 이 몸이 접수한다!', emotion: 'joy' },
-          { actor: ev.actor, text: '어머, 잡아먹는다고 말씀드렸잖아요?', emotion: 'joy' },
-        ] as DialogueLine[]),
+        pick(rng, pools[orangeSpeaker(ev.actor)]),
         pick(rng, [
           { actor: 'kkaki', text: '아앗! 대장, 우리 말이…! 두고 봐요!', emotion: 'anger' },
           { actor: 'kkaki', text: '으으, 분해! 꼭 갚아줄 거예요!', emotion: 'anger' },
@@ -194,18 +211,33 @@ export function linesForEvent(ev: GameEvent, rng: Rng): DialogueLine[] {
           ] as DialogueLine[]),
         ];
       }
-      return [
-        pick(rng, [
-          { actor: ev.actor, text: '업고 간다! 어흥, 두 배로 무섭지!', emotion: 'joy' },
-          { actor: ev.actor, text: '함께 가면 효율이 두 배랍니다.', emotion: 'neutral' },
-        ] as DialogueLine[]),
-      ];
+      const pools: Record<OrangeActor, DialogueLine[]> = {
+        beomtiger: [
+          { actor: 'beomtiger', text: '업고 간다! 어흥, 두 배로 무섭지!', emotion: 'joy' },
+          { actor: 'beomtiger', text: '둘이 뭉쳤다! 이제 못 막는다!', emotion: 'joy' },
+        ],
+        ninetail: [
+          { actor: 'ninetail', text: '함께 가면 효율이 두 배랍니다.', emotion: 'neutral' },
+          { actor: 'ninetail', text: '어머, 나란히 가는 편이 이득이죠.', emotion: 'neutral' },
+        ],
+      };
+      return [pick(rng, pools[orangeSpeaker(ev.actor)])];
     }
     case 'FINISH': {
       if (ev.team === 'blue') {
         return [{ actor: 'kkaki', text: '한 마리 완주! 순항 중이에요, 대장!', emotion: 'joy' }];
       }
-      return [{ actor: ev.actor, text: '먼저 한 발 완주다! 어흥!', emotion: 'joy' }];
+      const pools: Record<OrangeActor, DialogueLine[]> = {
+        beomtiger: [
+          { actor: 'beomtiger', text: '먼저 한 발 완주다! 어흥!', emotion: 'joy' },
+          { actor: 'beomtiger', text: '어흐하하! 한 마리 들여보냈다!', emotion: 'joy' },
+        ],
+        ninetail: [
+          { actor: 'ninetail', text: '한 마리 도착이네요. 후후.', emotion: 'joy' },
+          { actor: 'ninetail', text: '어머, 계산대로 들어갔네요.', emotion: 'joy' },
+        ],
+      };
+      return [pick(rng, pools[orangeSpeaker(ev.actor)])];
     }
     case 'LEAD_CHANGE': {
       if (ev.detail?.newLeader === 'blue') {
