@@ -19,7 +19,10 @@ const NAME_KO: Record<ActorId, string> = {
 // 좌우 팀 배치: 적팀 좌 / 아군 우 (CONCEPT §7.2, 기획 피드백 F-3·4)
 const LEFT_SIDE: ActorId[] = ['beomtiger', 'ninetail'];
 const RIGHT_SIDE: ActorId[] = ['kkaki', 'player'];
-const RESULT_DELAY_MS = 3400;
+// 결과 화면 전환은 마무리 대사가 끝나기를 기다린다 — 고정 지연이면 승리 타이틀 위로
+// 대사가 흐르는 도중에 화면이 넘어가 마무리가 잘린다 (LLM+TTS라 길이가 매번 다르다)
+const RESULT_AFTER_SPEECH_MS = 1200; // 대사 종료 후 여운
+const RESULT_MAX_MS = 12000; // 대사가 늦어져도 이 이상은 붙잡지 않는다
 const TOSS_MS = 700; // 가락 토스 연출 시간 — 이후 결과 공개 (F-5)
 
 export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) => void }) {
@@ -33,6 +36,7 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
     hintMove,
     moods,
     extraTurn,
+    endingSpoken,
     playerCanThrow,
     playerCanMove,
     selectableMoves,
@@ -67,9 +71,13 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
 
   useEffect(() => {
     if (state.phase !== 'finished' || !state.winner) return;
-    const t = setTimeout(() => onGameEnd(state.winner as TeamId), RESULT_DELAY_MS);
+    const winner = state.winner as TeamId;
+    // 마무리 대사가 끝나면(endingSpoken) 여운만 두고 전환. 대사가 늦어져도
+    // RESULT_MAX_MS는 넘기지 않는다 — 상한이 없으면 실패한 요청이 화면을 영구히 붙잡는다.
+    const delay = endingSpoken ? RESULT_AFTER_SPEECH_MS : RESULT_MAX_MS;
+    const t = setTimeout(() => onGameEnd(winner), delay);
     return () => clearTimeout(t);
-  }, [state.phase, state.winner, onGameEnd]);
+  }, [state.phase, state.winner, endingSpoken, onGameEnd]);
 
   const turnLabel =
     state.phase === 'finished'
@@ -195,8 +203,10 @@ export default function GameScreen({ onGameEnd }: { onGameEnd: (winner: TeamId) 
               </div>
             </div>
             <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {playerCanThrow ? (
-                <button className="btn-primary" onClick={playerThrow}>
+              {actor === 'player' && state.phase === 'awaitingThrow' ? (
+                // 차례 안내 대사가 끝나기 전에는 비활성 버튼으로 유지 — "도령, 고민 중…"으로
+                // 바뀌면 내 차례인데 남이 고민하는 것처럼 읽힌다
+                <button className="btn-primary" onClick={playerThrow} disabled={!playerCanThrow}>
                   윷 던지기!
                 </button>
               ) : playerCanMove && resultShown ? (

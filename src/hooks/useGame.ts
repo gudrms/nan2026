@@ -70,10 +70,18 @@ export function useGame() {
   const [moods, setMoods] = useState<Record<ActorId, Emotion>>(NEUTRAL_MOODS);
   const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [introDone, setIntroDone] = useState(false); // 시작 인사 종료 전에는 던지기 잠금 (I-2)
-  // 턴 오프닝 대사("대장 차례예요!") 낭독 중에는 던지기 잠금 — 안 그러면 플레이어가
-  // 대사 중간에 던져버려 driverBusy가 true인 채로 상태가 바뀌어 드라이버가 다음 턴을 못 잡는다
-  const [turnOpenPending, setTurnOpenPending] = useState(false);
+  // 현재 차례의 오프닝 대사("대장 차례예요!")가 끝났는가 — 플레이어 던지기 잠금의 기준.
+  // 턴이 넘어가는 순간(apply)에 false가 되므로, 드라이버가 안내 단계에 도달하기 전
+  // (직전 턴 대사를 기다리는 동안)에도 잠겨 있다. 이 구간이 열려 있으면 플레이어가
+  // 먼저 던져버려 안내가 통째로 누락되거나 "한 번 더" 도중에 뒤늦게 튀어나온다.
+  const [turnAnnounced, setTurnAnnounced] = useState(false);
+  const turnAnnouncedRef = useRef(false); // 드라이버 루프가 최신값을 읽기 위한 미러
+  const markTurnAnnounced = useCallback((done: boolean) => {
+    turnAnnouncedRef.current = done;
+    setTurnAnnounced(done);
+  }, []);
   const [extraTurn, setExtraTurn] = useState(false); // "한 번 더" 표시용 (윷·모·잡기 추가 턴)
+  const [endingSpoken, setEndingSpoken] = useState(false); // 마무리 대사 종료 — 결과 화면 전환 신호
   const stateRef = useRef(state);
   const rngRef = useRef<Rng>(mulberry32((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0));
   const historyRef = useRef<{ actor: string; text: string }[]>([]);
@@ -119,7 +127,7 @@ export function useGame() {
    * 음성이 없으면(폴백·음소거·dev) 즉시 표시. 타자기 페이스는 음성 길이에 맞춤.
    */
   const deliverLine = useCallback(
-    (line: DialogueLine) => {
+    (line: DialogueLine, opts?: { waitForDisplay?: boolean }) => {
       if (disposed.current) return Promise.resolve();
       historyRef.current.push({ actor: line.actor, text: line.text });
       if (historyRef.current.length > HISTORY_MAX) historyRef.current.shift();
@@ -144,6 +152,18 @@ export function useGame() {
         clearTimeout(safety);
         show(defaultMs); // 음성이 없었던 경우 — 즉시 표시
         const remain = Math.max(BUBBLE_MIN_MS - (Date.now() - shownAt), BUBBLE_AFTER_VOICE_MS);
+        // 평소 턴 진행은 음성 종료 즉시 다음으로 넘어가야 템포가 유지되어 remain을 기다리지
+        // 않는다. 다만 결과 화면 전환처럼 "말풍선이 실제로 사라질 때까지"가 진짜 기준인
+        // 호출은 opts로 명시해 기다리게 한다 — 안 그러면 음성이 짧거나 실패했을 때
+        // (사실상 즉시 resolve) 마지막 대사가 최소 노출 시간을 채우기도 전에 화면이 넘어간다
+        if (opts?.waitForDisplay) {
+          return new Promise<void>((r) =>
+            setTimeout(() => {
+              if (bubbleId !== null) removeBubble(bubbleId);
+              r();
+            }, remain),
+          );
+        }
         setTimeout(() => bubbleId !== null && removeBubble(bubbleId), remain);
       });
       trackSpeech(done);
@@ -170,7 +190,7 @@ export function useGame() {
               { actor: fallback.actor, event: ev.type, situation, history: historyRef.current.slice(-5) },
               fallback,
             );
-            await deliverLine(line);
+            await deliverLine(line, { waitForDisplay: ev.type === 'GAME_END' });
           })(),
         );
       });
@@ -193,11 +213,17 @@ export function useGame() {
         if (action.move.to === 'goal') sfxFinish();
         // 같은 참가자가 이어서 던지면 "한 번 더" (윷·모·잡기) — 버그로 오해하지 않게 표시
         setExtraTurn(next.phase === 'awaitingThrow' && next.turnIdx === prev.turnIdx);
+        // 차례가 실제로 넘어가는 이 순간부터 잠근다. "한 번 더"는 같은 차례라 잠그지 않는다
+        if (next.turnIdx !== prev.turnIdx) markTurnAnnounced(false);
       }
       const events = detectEvents(prev, action, next);
+      const gameEnding = events.some((e) => e.type === 'GAME_END');
       for (const ev of events) {
-        // YUT_MO 대사는 결과 리액션(resultReactionLine)이 대체 — 중복 발화 방지
-        if (ev.type !== 'YUT_MO') speakEvent(ev, next);
+        // YUT_MO 대사는 결과 리액션(resultReactionLine)이 대체 — 중복 발화 방지.
+        // 승리 순간의 FINISH도 GAME_END 마무리 대사가 대체한다 — 안 그러면 승리 타이틀
+        // 위로 완주 1줄 + 마무리 2줄이 연달아 나온다
+        const covered = ev.type === 'YUT_MO' || (ev.type === 'FINISH' && gameEnding);
+        if (!covered) speakEvent(ev, next);
         // 팀 전체가 표정으로 반응 (I-4)
         const blueTeam: ActorId[] = ['player', 'kkaki'];
         const orangeTeam: ActorId[] = ['beomtiger', 'ninetail'];
@@ -229,8 +255,10 @@ export function useGame() {
           }
         }
       }
+      // 마무리 대사가 전부 끝나는 시점을 알린다 — 결과 화면 전환이 이걸 기다린다
+      if (gameEnding) void waitSpeech().then(() => setEndingSpoken(true));
     },
-    [speakEvent],
+    [speakEvent, markTurnAnnounced, waitSpeech],
   );
 
   // 게임 시작 인사 — 순차 발화, 끝나면 던지기 개방 (I-2)
@@ -253,7 +281,6 @@ export function useGame() {
   // 턴 드라이버 (H-4 동기식): 차례 알림 → 던지기 → 결과 리액션 → 이동을 순차 진행.
   // 각 대사는 음성 종료까지 기다린다 — "주거니 받거니" 리듬.
   const driverBusy = useRef(false);
-  const openedTurnIdx = useRef(-1);
   useEffect(() => {
     if (driverBusy.current) return;
     if (!introDone) return; // 시작 인사가 끝나야 턴 시작
@@ -269,11 +296,9 @@ export function useGame() {
           if (s.phase !== 'awaitingThrow' || s.winner) break;
           const turnActor = currentActor(s);
           // 턴 오프닝 — 추가 턴(같은 참가자 한 번 더)에는 생략. 음성 종료까지 대기
-          if (openedTurnIdx.current !== s.turnIdx) {
-            openedTurnIdx.current = s.turnIdx;
-            setTurnOpenPending(true);
+          if (!turnAnnouncedRef.current) {
             await deliverLine(turnOpenLine(turnActor, rngRef.current));
-            setTurnOpenPending(false);
+            markTurnAnnounced(true);
             await sleep(150);
           }
           if (turnActor === 'player') break; // 버튼 입력 대기 (안내는 이미 나감)
@@ -291,13 +316,14 @@ export function useGame() {
         }
       } finally {
         driverBusy.current = false;
-        setTurnOpenPending(false); // 안전망 — 예외로 루프가 끊겨도 던지기 잠금이 영구히 남지 않게
+        // 안전망 — 예외로 안내 전에 루프가 끊겨도 던지기 잠금이 영구히 남지 않게
+        if (!turnAnnouncedRef.current) markTurnAnnounced(true);
       }
     })();
-  }, [state, introDone, apply, deliverLine]);
+  }, [state, introDone, apply, deliverLine, markTurnAnnounced]);
 
   const actor: ActorId = currentActor(state);
-  const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow' && introDone && !turnOpenPending;
+  const playerCanThrow = actor === 'player' && state.phase === 'awaitingThrow' && introDone && turnAnnounced;
   const playerCanMove = actor === 'player' && state.phase === 'awaitingMove';
   const selectableMoves = useMemo<Move[]>(() => (playerCanMove ? getMoves(state) : []), [playerCanMove, state]);
 
@@ -367,6 +393,7 @@ export function useGame() {
     hintMove,
     moods,
     extraTurn,
+    endingSpoken,
     playerCanThrow,
     playerCanMove,
     selectableMoves,
